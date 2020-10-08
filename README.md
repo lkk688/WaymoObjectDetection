@@ -12,5 +12,10 @@
 * The sample code to play with Torchvision in Colab: [colab link](https://colab.research.google.com/drive/1DKZUL5ylKjiKtfOCGpirjRA3j8rIOs9M?usp=sharing) (you need to use SJSU google account to view)
 * WaymoTrain.ipynb is the sample code to perform object detection training based on Torchvision FasterRCNN based on the original Waymo Dataset (TFRecord format), no dataset conversion is used in this sample code
 * WaymoEvaluation.ipynb is the sample code to perform evaluation (both COCO evaluation and image visualization) of the trained object detection model based on Torchvision FasterRCNN
+* coco_eval.py, coco_utils.py, engine.py, transforms.py, utils.py are copied from Torchvision directory and used in the WaymoTrain.ipynb and WaymoEvaluation.ipynb
+
+## Object Detection training and evaluation based on Detectron2
+* WaymoDetectron2Train.py is the code to run training based on Detectron2
+* WaymoDetectron2Evaluation.ipynb is the jupyter notebook code to run evaluation based on Detectron2
 
  
