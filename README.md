@@ -15,7 +15,7 @@
 * coco_eval.py, coco_utils.py, engine.py, transforms.py, utils.py are copied from Torchvision directory and used in the WaymoTrain.ipynb and WaymoEvaluation.ipynb
 
 ## Object Detection training and evaluation based on Detectron2
-* WaymoDetectron2Train.py is the code to run training based on Detectron2
+* WaymoDetectron2Train.py is the code to run training based on Detectron2. This code used the COCO formated dataset (WaymoDataset converted to COCO via WaymoNewtoCOCO.ipynb)
 * WaymoDetectron2Evaluation.ipynb is the jupyter notebook code to run evaluation based on Detectron2
 
  
