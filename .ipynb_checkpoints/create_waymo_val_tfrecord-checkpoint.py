@@ -168,7 +168,7 @@ def _create_tf_record_from_waymo_annotations(PATH,
                 xmax = xmin + label.box.length
                 ymax = ymin + label.box.width
                 area = label.box.length * label.box.width
-                if xmin<=xmax and ymin<=ymax and xmin>=0 and ymin>=0:# and xmax<=image_width and ymax<=image_height:# and area>2000:
+                if xmin<=xmax and ymin<=ymax and xmin>=0 and ymin>=0 and xmax<=image_width and ymax<=image_height:# and area>2000:
                     xmins.append(xmin/image_width) #normalized
                     ymins.append(ymin/image_height) #normalized
                     xmaxs.append(xmax/image_width)
