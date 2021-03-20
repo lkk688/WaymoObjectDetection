@@ -290,7 +290,7 @@ class Waymo2KITTIAsync(object):
         calib_context = ''
 
         for camera in frame.context.camera_calibrations:
-            # extrinsic parameters
+            # extrinsic parameters, Camera frame to vehicle frame.
             T_cam_to_vehicle = np.array(camera.extrinsic.transform).reshape(
                 4, 4)
             T_vehicle_to_cam = np.linalg.inv(T_cam_to_vehicle)
