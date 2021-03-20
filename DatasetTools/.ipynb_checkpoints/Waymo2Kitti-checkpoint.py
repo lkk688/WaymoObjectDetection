@@ -25,7 +25,6 @@ except ImportError:
         'Please run "pip install waymo-open-dataset-tf-2-1-0==1.2.0" '
         'to install the official devkit first.')
 
-import mmcv
 # from waymo_open_dataset.utils import range_image_utils, transform_utils
 # from waymo_open_dataset.utils.frame_utils import \
 #     parse_range_image_and_camera_projection
@@ -67,6 +66,7 @@ class Waymo2KITTI(object):
                  #load_dir,
                  save_dir,
                  workers=4,
+                 startingindex=0,
                  test_mode=False):
         self.filter_empty_3dboxes = True
         self.filter_no_label_zone_points = True
@@ -78,6 +78,8 @@ class Waymo2KITTI(object):
         # Available options: location_sf (main dataset)
         self.selected_waymo_locations = None
         self.save_track_id = False
+        self.startingindex = startingindex
+        print("startingindex:", startingindex)
 
         # turn on eager execution for older tensorflow versions
         if int(tf.__version__.split('.')[0]) < 2:
@@ -105,6 +107,7 @@ class Waymo2KITTI(object):
         self.totalimage_count=0
 
         self.tfrecord_pathnames = alltfrecordfiles
+        self.totalfilenum =len(self.tfrecord_pathnames)
 #         sorted(
 #             glob(join(self.load_dir, '*.tfrecord')))
 
@@ -119,6 +122,7 @@ class Waymo2KITTI(object):
 
     def convert(self):
         """Convert action."""
+        import mmcv
         print('Start converting ...')
         mmcv.track_parallel_progress(self.convert_one, range(len(self)),
                                      self.workers)
@@ -126,9 +130,12 @@ class Waymo2KITTI(object):
 
     def convert_singlethread(self):
         print('Start converting ...')
-        for file_idx in range(len(self.tfrecord_pathnames)):
+        for file_idx in range(self.startingindex, self.totalfilenum):
             print("Current: fileindex:", file_idx)
             self.convert_one(file_idx)
+#         for file_idx in range(len(self.tfrecord_pathnames)):
+#             print("Current: fileindex:", file_idx)
+#             self.convert_one(file_idx)
     
     def convert_multithread(self):
         print('Start multithread converting ...')
@@ -347,7 +354,7 @@ class Waymo2KITTI(object):
             f'{str(file_idx).zfill(3)}{str(frame_idx).zfill(3)}.txt', 'w+')
         id_to_bbox = dict()
         id_to_name = dict()
-        for labels in frame.camera_labels: #frame.projected_lidar_labels:
+        for labels in frame.projected_lidar_labels: #frame.camera_labels: #frame.projected_lidar_labels:
             name = labels.name
             for label in labels.labels:
                 # TODO: need a workaround as bbox may not belong to front cam
@@ -359,15 +366,21 @@ class Waymo2KITTI(object):
                 ]
                 id_to_bbox[label.id] = bbox
                 id_to_name[label.id] = name - 1
-
+        #print("id_to_bbox:",id_to_bbox)
         for obj in frame.laser_labels:
             bounding_box = None
             name = None
             id = obj.id
             for lidar in self.lidar_list:
+                # print("Lidar:", lidar)
+                # print("boundingbox:", id_to_bbox.get(id))
+                # print("boundingbox id lidar:", id_to_bbox.get(id + lidar))
                 if id + lidar in id_to_bbox:
+                    #print("id + lidar:",id + lidar)
                     bounding_box = id_to_bbox.get(id + lidar)
+                    #print("bounding_box:", bounding_box)
                     name = str(id_to_name.get(id + lidar))
+                    #print("name:",name)
                     break
 
             if bounding_box is None or name is None:
