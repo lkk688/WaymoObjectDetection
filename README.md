@@ -5,6 +5,34 @@
 * create_waymo_train_tfrecord.py and create_waymo_val_tfrecord.py are used to convert the original Waymo Dataset (TFRecord format) to TFRecord files used for Tensorflow object detection
 * WaymoNewtoCOCO.ipynb is the code to convert the original Waymo Dataset (TFRecord format) to COCO format.
 
+Use the following code to convert Waymo dataset to Kitti format:
+```bash
+DatasetTools]$ python Waymo2KittiAsync.py
+```
+
+Create train val split file:
+```bash
+(venvpy37cu10) [010796032@g5 DatasetTools]$ python mycreatewaymoinfo.py --createsplitfile_only
+Root path: /data/cmpe249-f20/WaymoKittitMulti/trainall/training
+out_dir path: /data/cmpe249-f20/WaymoKittitMulti/trainall/
+Total images: 175493
+Train size: (140394, 1)
+Val size: (35099, 1)
+Done in /data/cmpe249-f20/WaymoKittitMulti/trainall/ImageSets/trainval.txt
+Done in /data/cmpe249-f20/WaymoKittitMulti/trainall/ImageSets/train.txt
+Done in /data/cmpe249-f20/WaymoKittitMulti/trainall/ImageSets/val.txt
+```
+
+Use the following code to generate info .pkl files: 
+```bash
+(venvpy37cu10) [010796032@g5 DatasetTools]$ python mycreatewaymoinfo.py --createinfo_only
+Root path: /data/cmpe249-f20/WaymoKittitMulti/trainall/
+out_dir path: /data/cmpe249-f20/WaymoKittitMulti/trainall/
+Generate info. this may take several minutes.
+```
+![image](https://user-images.githubusercontent.com/6676586/111931827-57952480-8a79-11eb-878c-cab790fca0cd.png)
+
+
 ## Object Detection training and evaluation based on Tensorflow2 Object Detection
 * Tensorflow2-objectdetection-waymodata.ipynb is the Google Colab sample code to perform object detection and training based on Tensorflow2 object detection (latest version) and utilize the converted Waymo TFRecord file in Google Cloud storage.
 
