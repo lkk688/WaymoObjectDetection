@@ -10,7 +10,26 @@ Use the following code to convert Waymo dataset to Kitti format:
 DatasetTools]$ python Waymo2KittiAsync.py
 ```
 
-Use the following code to generate info .pkl files: DatasetTools]$ python mycreatewaymoinfo.py --createinfo_only
+Create train val split file:
+```bash
+(venvpy37cu10) [010796032@g5 DatasetTools]$ python mycreatewaymoinfo.py --createsplitfile_only
+Root path: /data/cmpe249-f20/WaymoKittitMulti/trainall/training
+out_dir path: /data/cmpe249-f20/WaymoKittitMulti/trainall/
+Total images: 175493
+Train size: (140394, 1)
+Val size: (35099, 1)
+Done in /data/cmpe249-f20/WaymoKittitMulti/trainall/ImageSets/trainval.txt
+Done in /data/cmpe249-f20/WaymoKittitMulti/trainall/ImageSets/train.txt
+Done in /data/cmpe249-f20/WaymoKittitMulti/trainall/ImageSets/val.txt
+```
+
+Use the following code to generate info .pkl files: 
+```bash
+(venvpy37cu10) [010796032@g5 DatasetTools]$ python mycreatewaymoinfo.py --createinfo_only
+Root path: /data/cmpe249-f20/WaymoKittitMulti/trainall/
+out_dir path: /data/cmpe249-f20/WaymoKittitMulti/trainall/
+Generate info. this may take several minutes.
+```
 ![image](https://user-images.githubusercontent.com/6676586/111931827-57952480-8a79-11eb-878c-cab790fca0cd.png)
 
 
