@@ -42,6 +42,13 @@ Waymo info val file is saved to /data/cmpe249-f20/WaymoKittitMulti/trainall/waym
 [>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 175493/175493, 6.7 task/s, elapsed: 26166s, ETA:     0s
 Waymo info trainval file is saved to /data/cmpe249-f20/WaymoKittitMulti/trainall/waymo_infos_trainval.pkl
 ```
+The generated files are located in
+```bash
+ls /data/cmpe249-f20/WaymoKittitMulti/trainall
+ImageSets  training  waymo_infos_train.pkl  waymo_infos_trainval.pkl  waymo_infos_val.pkl
+```
+
+After the infos.pkl files have been generated, you can go to [mymmdetection3d](https://github.com/lkk688/mymmdetection3d) to perform groundtruth db generation.
 
 ## Object Detection training and evaluation based on Tensorflow2 Object Detection
 * Tensorflow2-objectdetection-waymodata.ipynb is the Google Colab sample code to perform object detection and training based on Tensorflow2 object detection (latest version) and utilize the converted Waymo TFRecord file in Google Cloud storage.
