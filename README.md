@@ -29,9 +29,14 @@ Use the following code to generate info .pkl files:
 Root path: /data/cmpe249-f20/WaymoKittitMulti/trainall/
 out_dir path: /data/cmpe249-f20/WaymoKittitMulti/trainall/
 Generate info. this may take several minutes.
+Generate info. this may take several minutes.
+[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 140394/140394, 6.9 task/s, elapsed: 20461s, ETA:     0s
+Waymo info train file is saved to /data/cmpe249-f20/WaymoKittitMulti/trainall/waymo_infos_train.pkl
+[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 35099/35099, 8.0 task/s, elapsed: 4376s, ETA:     0s
+Waymo info val file is saved to /data/cmpe249-f20/WaymoKittitMulti/trainall/waymo_infos_val.pkl
+[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 175493/175493, 6.7 task/s, elapsed: 26166s, ETA:     0s
+Waymo info trainval file is saved to /data/cmpe249-f20/WaymoKittitMulti/trainall/waymo_infos_trainval.pkl
 ```
-![image](https://user-images.githubusercontent.com/6676586/111931827-57952480-8a79-11eb-878c-cab790fca0cd.png)
-
 
 ## Object Detection training and evaluation based on Tensorflow2 Object Detection
 * Tensorflow2-objectdetection-waymodata.ipynb is the Google Colab sample code to perform object detection and training based on Tensorflow2 object detection (latest version) and utilize the converted Waymo TFRecord file in Google Cloud storage.
