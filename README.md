@@ -5,9 +5,14 @@
 * create_waymo_train_tfrecord.py and create_waymo_val_tfrecord.py are used to convert the original Waymo Dataset (TFRecord format) to TFRecord files used for Tensorflow object detection
 * WaymoNewtoCOCO.ipynb is the code to convert the original Waymo Dataset (TFRecord format) to COCO format.
 
-Use the following code to convert Waymo dataset to Kitti format:
+Use the following code to convert Waymo dataset to Kitti format (it calls converter.concurrenttaskthread()). HPC can open up to 56 (total CPU cores) threads for parallal conversion, 48 threads are tested:
 ```bash
 DatasetTools]$ python Waymo2KittiAsync.py
+```
+The conversion takes more than 48 hours (the maximum timeout of our HPC GPU node). You can record the finished file index, and continue the conversion from this index via startingindex metric. The converted folder is in 
+```bash
+(venvpy37cu10) [010796032@g4 DatasetTools]$ ls /data/cmpe249-f20/WaymoKittiAsync/training/
+calib  image_0  image_1  image_2  image_3  image_4  label_0  label_1  label_2  label_3  label_4  label_all  pose  velodyne
 ```
 
 Create train val split file:
