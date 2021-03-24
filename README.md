@@ -5,9 +5,14 @@
 * create_waymo_train_tfrecord.py and create_waymo_val_tfrecord.py are used to convert the original Waymo Dataset (TFRecord format) to TFRecord files used for Tensorflow object detection
 * WaymoNewtoCOCO.ipynb is the code to convert the original Waymo Dataset (TFRecord format) to COCO format.
 
-Use the following code to convert Waymo dataset to Kitti format:
+Use the following code to convert Waymo dataset to Kitti format (it calls converter.concurrenttaskthread()). HPC can open up to 56 (total CPU cores) threads for parallal conversion, 48 threads are tested:
 ```bash
 DatasetTools]$ python Waymo2KittiAsync.py
+```
+The conversion takes more than 48 hours (the maximum timeout of our HPC GPU node). You can record the finished file index, and continue the conversion from this index via startingindex metric. The converted folder is in 
+```bash
+(venvpy37cu10) [010796032@g4 DatasetTools]$ ls /data/cmpe249-f20/WaymoKittiAsync/training/
+calib  image_0  image_1  image_2  image_3  image_4  label_0  label_1  label_2  label_3  label_4  label_all  pose  velodyne
 ```
 
 Create train val split file:
@@ -29,9 +34,21 @@ Use the following code to generate info .pkl files:
 Root path: /data/cmpe249-f20/WaymoKittitMulti/trainall/
 out_dir path: /data/cmpe249-f20/WaymoKittitMulti/trainall/
 Generate info. this may take several minutes.
+Generate info. this may take several minutes.
+[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 140394/140394, 6.9 task/s, elapsed: 20461s, ETA:     0s
+Waymo info train file is saved to /data/cmpe249-f20/WaymoKittitMulti/trainall/waymo_infos_train.pkl
+[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 35099/35099, 8.0 task/s, elapsed: 4376s, ETA:     0s
+Waymo info val file is saved to /data/cmpe249-f20/WaymoKittitMulti/trainall/waymo_infos_val.pkl
+[>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>] 175493/175493, 6.7 task/s, elapsed: 26166s, ETA:     0s
+Waymo info trainval file is saved to /data/cmpe249-f20/WaymoKittitMulti/trainall/waymo_infos_trainval.pkl
 ```
-![image](https://user-images.githubusercontent.com/6676586/111931827-57952480-8a79-11eb-878c-cab790fca0cd.png)
+The generated files are located in
+```bash
+ls /data/cmpe249-f20/WaymoKittitMulti/trainall
+ImageSets  training  waymo_infos_train.pkl  waymo_infos_trainval.pkl  waymo_infos_val.pkl
+```
 
+After the infos.pkl files have been generated, you can go to [mymmdetection3d](https://github.com/lkk688/mymmdetection3d) to perform groundtruth db generation.
 
 ## Object Detection training and evaluation based on Tensorflow2 Object Detection
 * Tensorflow2-objectdetection-waymodata.ipynb is the Google Colab sample code to perform object detection and training based on Tensorflow2 object detection (latest version) and utilize the converted Waymo TFRecord file in Google Cloud storage.
