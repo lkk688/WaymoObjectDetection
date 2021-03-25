@@ -1,6 +1,6 @@
 import pickle
 
-filename = "/data/cmpe249-f20/WaymoKittitMulti/train0001/waymo_infos_val.pkl"
+filename = "/data/cmpe249-f20/WaymoKittitMulti/4c_train0002/waymo_infos_val.pkl"
 infile = open(filename,'rb')
 new_dict = pickle.load(infile)
 infile.close()
