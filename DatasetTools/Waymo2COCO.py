@@ -1,7 +1,3 @@
-r"""Adapted from `Waymo to KITTI converter
-    <https://github.com/caizhongang/waymo_kitti_converter>`_.
-"""
-
 
 import os
 import cv2
@@ -18,6 +14,15 @@ import asyncio #https://asyncio.readthedocs.io/en/latest/hello_world.html
 import time
 import concurrent.futures
 
+
+import argparse
+from pathlib import Path
+import json
+from PIL import Image
+import sys
+import datetime
+import pickle
+
 #tf.enable_eager_execution()
 try:
     from waymo_open_dataset.utils import range_image_utils
@@ -33,14 +38,14 @@ except ImportError:
 # from waymo_open_dataset.utils.frame_utils import \
 #     parse_range_image_and_camera_projection
 
-class Waymo2KITTIAsync(object):
-    """Waymo to KITTI converter.
+class Waymo2COCO(object):
+    """Waymo to COCO converter.
 
     This class serves as the converter to change the waymo raw data to KITTI
     format.
 
     Args:
-        load_dir (str): Directory to load waymo raw data.
+        alltfrecordfiles: Directory to load waymo raw data.
         save_dir (str): Directory to save data in KITTI format.
         workers (str): Number of workers for the parallel process.
         test_mode (bool): Whether in the test_mode. Default: False.
@@ -57,8 +62,11 @@ class Waymo2KITTIAsync(object):
         self.filter_no_label_zone_points = True
 
         #self.selected_waymo_classes = ['VEHICLE', 'PEDESTRIAN', 'CYCLIST']
-        self.selected_waymo_classes = ['VEHICLE', 'PEDESTRIAN', 'CYCLIST','SIGN']
-        print("selected_waymo_classes:", self.selected_waymo_classes)
+        # self.selected_waymo_classes = ['VEHICLE', 'PEDESTRIAN', 'CYCLIST','SIGN']
+        # print("selected_waymo_classes:", self.selected_waymo_classes)
+
+        WAYMO_CLASSES = ['unknown', 'vehicle', 'pedestrian', 'sign', 'cyclist']
+        self.categories = [{'id': i, 'name': n} for i, n in enumerate(WAYMO_CLASSES)][1:]
 
         # Only data collected in specific locations will be converted
         # If set None, this filter is disabled
@@ -92,82 +100,19 @@ class Waymo2KITTIAsync(object):
         self.workers = int(workers)
         self.test_mode = test_mode
         self.totalimage_count=0
+        self.step=1
 
         self.tfrecord_pathnames = alltfrecordfiles
         self.totalfilenum =len(self.tfrecord_pathnames)
 #         sorted(
 #             glob(join(self.load_dir, '*.tfrecord')))
 
-        self.label_save_dir = f'{self.save_dir}/label_'
-        self.label_all_save_dir = f'{self.save_dir}/label_all'
-        self.image_save_dir = f'{self.save_dir}/image_'
-        self.calib_save_dir = f'{self.save_dir}/calib'
-        self.point_cloud_save_dir = f'{self.save_dir}/velodyne'
-        self.pose_save_dir = f'{self.save_dir}/pose'
-
-        self.create_folder()
-    
-    def convertcoroutine(self):
-        _start = time.time()
-        loop = asyncio.get_event_loop()
-        future = asyncio.ensure_future(self.mycoroutinetaskprocess())#(self.concurrenttaskthread())
-        loop.run_until_complete(future)
-        print(f"Execution time: { time.time() - _start }")
-        loop.close()
-    
-    async def mycoroutinetask(self):
-        tasks = []
-        print('Start converting ...')
-        for file_idx in range(self.startingindex, self.totalfilenum):
-            print("Current: fileindex:", file_idx)
-            task = asyncio.ensure_future(self.convert_one(file_idx))
-            #self.convert_one(file_idx)
-            tasks.append(task)
-        await asyncio.gather(*tasks)
-
-    async def mycoroutinetaskprocess(self):#https://github.com/jersobh/python-parallelism-examples/blob/master/async_concurrent_futures.py
-        with concurrent.futures.ProcessPoolExecutor(max_workers=self.workers) as executor:
-            futures = {executor.submit(self.convert_one, file_idx) for file_idx in range(self.startingindex, self.totalfilenum) }
-            for future in concurrent.futures.as_completed(futures):
-                print("finished one future")
     
     def concurrenttaskthread(self):#https://github.com/jersobh/python-parallelism-examples/blob/master/async_concurrent_futures.py
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.workers) as executor:
-            futures = {executor.submit(self.convert_one_async, file_idx) for file_idx in range(self.startingindex, self.totalfilenum) }
+            futures = {executor.submit(self.convert_onetfrecord_async, file_idx) for file_idx in range(self.startingindex, self.totalfilenum) }
             for future in concurrent.futures.as_completed(futures):
                 print("finished one future")
-
-    def convert(self):
-        """Convert action."""
-        import mmcv
-        print('Start converting ...')
-        mmcv.track_parallel_progress(self.convert_one, range(len(self)),
-                                     self.workers)
-        print('\nFinished ...')
-
-    def convert_singlethread(self):
-        print('Start converting ...')
-        for file_idx in range(self.startingindex, self.totalfilenum):
-            print("Current: fileindex:", file_idx)
-            self.convert_one(file_idx)
-#         for file_idx in range(len(self.tfrecord_pathnames)):
-#             print("Current: fileindex:", file_idx)
-#             self.convert_one(file_idx)
-    
-    def convert_multithread(self):
-        print('Start multithread converting ...')
-        chunksize =1
-        process_num=self.workers
-        skip_first=False
-        tasks = range(len((self.tfrecord_pathnames)))
-        task_num = len(tasks)
-        pool = Pool(process_num)
-        results = []
-        gen = pool.imap(self.convert_one, tasks, chunksize)
-        for result in gen:
-            results.append(result)
-        pool.close()
-        pool.join()
         
     def convert_one_async(self, file_idx):
         pathname = self.tfrecord_pathnames[file_idx]
@@ -180,19 +125,7 @@ class Waymo2KITTIAsync(object):
         for frame_idx, data in enumerate(dataset):
             loop.run_until_complete(self.savetofiles(data, file_idx, frame_idx))
             #loop.run_until_complete(self.do_stuff(file_idx, frame_idx))
-        loop.close()
-
-        # dataset = tf.data.TFRecordDataset(pathname, compression_type='')
-        # loop = asyncio.get_event_loop()
-        # for frame_idx, data in enumerate(dataset):
-        #     loop.run_until_complete(savetofiles(data, file_idx, frame_idx))
-        #     break
-        # loop.close()
-            #await savetofiles(data, file_idx, frame_idx)
-#             loop = asyncio.get_event_loop()
-#             loop.run_until_complete(savetofiles(data, file_idx, frame_idx))
-#             loop.close()
-            
+        loop.close()          
         print(f"convert one Execution time: { time.time() - c_start }")
         
     async def do_stuff(self,file_idx, frame_idx):
@@ -202,53 +135,193 @@ class Waymo2KITTIAsync(object):
             # loop to this function explicitly.
         print("in do stuff: ",file_idx, frame_idx)
 
-    async def savetofiles(self,data, file_idx, frame_idx):
-        print("savetofiles:",file_idx,frame_idx )
-        c_start = time.time()
-        frame = open_dataset.Frame()
-        frame.ParseFromString(bytearray(data.numpy()))
-        self.save_image(frame, file_idx, frame_idx)
-        self.save_calib(frame, file_idx, frame_idx)
-        self.save_lidar(frame, file_idx, frame_idx)
-        self.save_pose(frame, file_idx, frame_idx)
-
-        if not self.test_mode:
-            self.save_label(frame, file_idx, frame_idx)
-        print(f"savetofiles fileid:{file_idx} frameid:{frame_idx} Execution time: { time.time() - c_start }")
-
-    def convert_one(self, file_idx):
-        """Convert action for single file.
-
-        Args:
-            file_idx (int): Index of the file to be converted.
-        """
-        pathname = self.tfrecord_pathnames[file_idx]
-        print("Convert: fileindex:", file_idx)
-        print("Current path:", pathname)
-        c_start = time.time()
-        dataset = tf.data.TFRecordDataset(pathname, compression_type='')
-
-        for frame_idx, data in enumerate(dataset):
-
-            frame = open_dataset.Frame()
-            frame.ParseFromString(bytearray(data.numpy()))
-            if (self.selected_waymo_locations is not None
-                    and frame.context.stats.location
-                    not in self.selected_waymo_locations):
-                continue
-
-            self.save_image(frame, file_idx, frame_idx)
-            self.save_calib(frame, file_idx, frame_idx)
-            self.save_lidar(frame, file_idx, frame_idx)
-            self.save_pose(frame, file_idx, frame_idx)
-
-            if not self.test_mode:
-                self.save_label(frame, file_idx, frame_idx)
-        print(f"convert one Execution time: { time.time() - c_start }")
-
     def __len__(self):
         """Length of the filename list."""
         return len(self.tfrecord_pathnames)
+    
+    def get_camera_labels(self, frame):#Select to use the camera_labels or Lidar 2D labels
+        if frame.camera_labels:
+            return frame.camera_labels
+        return frame.projected_lidar_labels
+    
+    def convert_onetfrecord_async(self, file_idx):
+        pathname = self.tfrecord_pathnames[file_idx]
+        c_start = time.time()
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(self.extract_onesegment_allcamera(file_idx,pathname, self.save_dir, self.step))
+        loop.close()          
+        print(f"convert one async execution time: { time.time() - c_start }")
+    
+    async def extract_onesegment_allcamera(self, fileidx, segment_path, out_dir, step):
+        images = []
+        annotations = []
+        file_imageglobeid = 0
+        foldername='images'
+        c_start = time.time()
+        #print(c_start)
+        print(f'extracting {fileidx}, path: {segment_path}, currenttime: {c_start}')
+        segment_path=Path(segment_path)#convert str to Path object
+        segment_name = segment_path.name
+        print(segment_name)
+        segment_out_dir = out_dir / foldername # remove segment_name as one folder, duplicate with image name
+        # segment_out_dir = out_dir / segment_name 
+        # print(segment_out_dir)#output path + segment_name(with tfrecord)
+        # segment_out_dir.mkdir(parents=True, exist_ok=True)
+
+        dataset = tf.data.TFRecordDataset(str(segment_path), compression_type='')
+
+        for i, data in enumerate(dataset):
+            if i % step != 0: #Downsample
+                continue
+
+            #print('.', end='', flush=True) #progress bar
+            frame = open_dataset.Frame()
+            frame.ParseFromString(bytearray(data.numpy()))
+            #get one frame
+
+            context_name = frame.context.name #A unique name that identifies the frame sequence
+            frame_timestamp_micros = str(frame.timestamp_micros)
+
+            for index, image in enumerate(frame.images):
+                camera_name = open_dataset.CameraName.Name.Name(image.name)
+                #image_globeid = image_globeid + 1
+                image_globeid = f'{str(fileidx).zfill(3)}' + f'{str(file_imageglobeid).zfill(3)}'
+                file_imageglobeid = file_imageglobeid + 1
+                #print("camera name:", camera_name)
+
+                img = tf.image.decode_jpeg(image.image).numpy()
+                image_name='_'.join([frame_timestamp_micros, camera_name])#image name
+                #image_id = '/'.join([context_name, image_name]) #using "/" join, context_name is the folder
+                #New: use sub-folder
+                image_id = '_'.join([context_name, image_name])
+                #image_id = '/'.join([context_name, frame_timestamp_micros, camera_name]) #using "/" join
+                relative_filepath = '/'.join(foldername, image_id + '.jpg')
+                #print(file_name)
+                #filepath = out_dir / file_name
+                filepath = segment_out_dir / relative_filepath
+                print('Image output global path:',filepath)
+                filepath.parent.mkdir(parents=True, exist_ok=True)
+
+                #images.append(dict(file_name=file_name, id=image_id, height=img.shape[0], width=img.shape[1], camera_name=camera_name))#new add camera_name
+                img_dic=dict(file_name=relative_filepath, id=image_globeid, height=img.shape[0], width=img.shape[1], camera_name=camera_name)
+                images.append(img_dic)#new add camera_name
+                print("current image id: ", image_globeid)
+                print("current image dic: ", img_dic)
+                #cv2.imwrite(str(filepath), img)
+                cv2.imwrite(str(filepath), cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
+
+                for camera_labels in self.get_camera_labels(frame):
+                    # Ignore camera labels that do not correspond to this camera.
+                    if camera_labels.name == image.name:
+                        # Iterate over the individual labels.
+                        for label in camera_labels.labels:
+                            # object bounding box.
+                            width = int(label.box.length)
+                            height = int(label.box.width)
+                            x = int(label.box.center_x - 0.5 * width)
+                            y = int(label.box.center_y - 0.5 * height)
+                            area = width * height
+                            anno_dict = dict(image_id=image_globeid,
+                                                    bbox=[x, y, width, height], area=area, category_id=label.type,
+                                                    object_id=label.id,
+                                                    tracking_difficulty_level=2 if label.tracking_difficulty_level == 2 else 1,
+                                                    detection_difficulty_level=2 if label.detection_difficulty_level == 2 else 1)
+                            print("current image annotation dic: ", anno_dict)
+                            annotations.append(anno_dict)
+        
+        lasttime=time.time() - c_start
+        coco_obj = {'fileidx':fileidx, 'segment_name':segment_name, 'segment_out_dir':segment_out_dir,'num_images':file_imageglobeid, 'lasttime':lasttime, 'images':images, 'annotations':annotations}
+        picklefilename = 'mycocopickle'+fileidx+'.pickle'
+        with open(out_dir / picklefilename, 'wb') as f:
+            pickle.dump(coco_obj, f)
+        #print(f"Finished, Execution time: { time.time() - c_start }")
+        print(f'Finished file {fileidx}, Execution time: { time.time() - c_start }')
+        
+
+    def extract_segment_allcamera(self, tfrecord_files, out_dir, step):
+
+        WAYMO_CLASSES = ['unknown', 'vehicle', 'pedestrian', 'sign', 'cyclist']
+    
+        images = []
+        annotations = []
+        categories = [{'id': i, 'name': n} for i, n in enumerate(WAYMO_CLASSES)][1:]
+        image_globeid=0
+        
+        for fileidx, segment_path in tfrecord_files:
+
+            print(f'extracting {fileidx}, path: {segment_path}')
+            segment_path=Path(segment_path)#convert str to Path object
+            segment_name = segment_path.name
+            print(segment_name)
+            #segment_out_dir = out_dir # remove segment_name as one folder, duplicate with image name
+            segment_out_dir = out_dir / segment_name 
+            print(segment_out_dir)#output path + segment_name(with tfrecord)
+            segment_out_dir.mkdir(parents=True, exist_ok=True)
+
+            dataset = tf.data.TFRecordDataset(str(segment_path), compression_type='')
+            
+            for i, data in enumerate(dataset):
+                if i % step != 0: #Downsample
+                    continue
+
+                print('.', end='', flush=True) #progress bar
+                frame = open_dataset.Frame()
+                frame.ParseFromString(bytearray(data.numpy()))
+                #get one frame
+
+                context_name = frame.context.name #A unique name that identifies the frame sequence
+                frame_timestamp_micros = str(frame.timestamp_micros)
+
+                for index, image in enumerate(frame.images):
+                    camera_name = open_dataset.CameraName.Name.Name(image.name)
+                    image_globeid = image_globeid + 1
+                    #print("camera name:", camera_name)
+
+                    img = tf.image.decode_jpeg(image.image).numpy()
+                    image_name='_'.join([frame_timestamp_micros, camera_name])#image name
+                    #image_id = '/'.join([context_name, image_name]) #using "/" join, context_name is the folder
+                    #New: use sub-folder
+                    image_id = '_'.join([context_name, image_name])
+                    #image_id = '/'.join([context_name, frame_timestamp_micros, camera_name]) #using "/" join
+                    file_name = image_id + '.jpg'
+                    #print(file_name)
+                    #filepath = out_dir / file_name
+                    filepath = segment_out_dir / file_name
+                    print('Image output path:',filepath)
+                    filepath.parent.mkdir(parents=True, exist_ok=True)
+
+                    #images.append(dict(file_name=file_name, id=image_id, height=img.shape[0], width=img.shape[1], camera_name=camera_name))#new add camera_name
+                    img_dic=dict(file_name=file_name, id=image_globeid, height=img.shape[0], width=img.shape[1], camera_name=camera_name)
+                    images.append(img_dic)#new add camera_name
+                    print("current image id: ", image_globeid)
+                    print("current image dic: ", img_dic)
+                    cv2.imwrite(str(filepath), img)
+
+                    for camera_labels in self.get_camera_labels(frame):
+                        # Ignore camera labels that do not correspond to this camera.
+                        if camera_labels.name == image.name:
+                            # Iterate over the individual labels.
+                            for label in camera_labels.labels:
+                                # object bounding box.
+                                width = int(label.box.length)
+                                height = int(label.box.width)
+                                x = int(label.box.center_x - 0.5 * width)
+                                y = int(label.box.center_y - 0.5 * height)
+                                area = width * height
+                                anno_dict = dict(image_id=image_globeid,
+                                                        bbox=[x, y, width, height], area=area, category_id=label.type,
+                                                        object_id=label.id,
+                                                        tracking_difficulty_level=2 if label.tracking_difficulty_level == 2 else 1,
+                                                        detection_difficulty_level=2 if label.detection_difficulty_level == 2 else 1)
+                                print("current image annotation dic: ", anno_dict)
+                                annotations.append(anno_dict)
+
+        with (segment_out_dir / 'annotations.json').open('w') as f:
+            for i, anno in enumerate(annotations):
+                anno['id'] = i #set as image frame ID
+            json.dump(dict(images=images, annotations=annotations, categories=categories), f)
+            
 
     def save_image(self, frame, file_idx, frame_idx):
         """Parse and save the images in png format.
@@ -580,10 +653,10 @@ if __name__ == "__main__":
     #folders = ["training_0000","training_0001", "training_0002","training_0003","training_0004","training_0005","training_0006","training_0007","training_0008","training_0009", "training_0010", "training_0015", "training_0016", "training_0017","training_0018", "training_0019", "training_0020", "training_0021","training_0022","training_0023","training_0024","training_0025","training_0026","training_0027","training_0028","training_0029","training_0030","training_0031","validation_0000","validation_0001","validation_0002","validation_0003","validation_0004","validation_0005","validation_0006","validation_0007"]#["training_0001"]# ["training_0000", "training_0001"]
     # folders = ["training_0004"]
     # folder_name="4c_train0004"
-    folders = ["training_0005", "training_0006","training_0007","training_0008"]
-    folder_name="4c_train5678"
+    folders = ["training_0009"]
+    folder_name="train09"
     root_path="/data/cmpe249-f20/Waymo"
-    out_dir="/data/cmpe249-f20/WaymoKittitMulti"
+    out_dir="/data/cmpe249-f20/WaymoCOCOMulti"
     data_files = [path for x in folders for path in glob(os.path.join(root_path, x, "*.tfrecord"))]
     print("totoal number of files:", len(data_files))
 
@@ -591,7 +664,7 @@ if __name__ == "__main__":
     c_start = time.time()
     print(c_start)
     save_dir = osp.join(out_dir, folder_name, 'training')
-    converter = Waymo2KITTIAsync(
+    converter = Waymo2COCO(
             data_files,
             save_dir,
             workers=workers,

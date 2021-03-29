@@ -30,7 +30,7 @@ converter = Waymo2KittiAsync.Waymo2KITTIAsync(
     data_files,
     save_dir,
     workers=workers,
-    startingindex=0,
+    startingindex=600, #0,
     test_mode=False)
 converter.concurrenttaskthread()#convert_multithread()#convertcoroutine()#concurrenttaskthread()#.convert() 
 
