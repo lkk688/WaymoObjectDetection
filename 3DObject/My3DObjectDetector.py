@@ -72,7 +72,7 @@ class MyMM3DObjectDetector(object):
                 state_dict = checkpoint['state_dict']
             else:
                 state_dict = checkpoint
-            # strip prefix of state_dict
+            # strip prefix of state_dict, not used here
             if list(state_dict.keys())[0].startswith('module.'):
                 state_dict = {k[7:]: v for k, v in state_dict.items()}
             # load state_dict
@@ -91,11 +91,13 @@ class MyMM3DObjectDetector(object):
     def detect(self, pcd):
         self.data['pts_filename']=pcd
 
+        device = next(self.model.parameters()).device  # model device
+
         data = self.test_pipeline(self.data)
         data = collate([data], samples_per_gpu=1)
         if next(self.model.parameters()).is_cuda:
             # scatter to specified GPU
-            data = scatter(data, [self.device.index])[0]
+            data = scatter(data, [device.index])[0]
         # forward the model
         with torch.no_grad():
             result = self.model(return_loss=False, rescale=True, **data)
