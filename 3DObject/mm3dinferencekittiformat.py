@@ -1,5 +1,5 @@
 
-from My3DObjectDetector import MyMM3DObjectDetector
+from MyMM3DObjectDetector import MyMM3DObjectDetector
 import glob
 import time
 import pickle
