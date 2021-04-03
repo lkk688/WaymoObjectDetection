@@ -192,8 +192,42 @@ Project the lidar data to the 2D image needs the following key steps: 1) project
 
 ![image](https://user-images.githubusercontent.com/6676586/111890589-f5b8ba00-89a7-11eb-945a-7c1835b22f8c.png)
 
+## Waymo Frame to Dict for inference
+waymoframe2dict.py converts Frame proto into np dictionary to meet the requirements of Waymo realtime inference [Latency](https://github.com/waymo-research/waymo-open-dataset/tree/master/waymo_open_dataset/latency)
 
-## Waymo Dataset Preparation
+### Convert to Dict
+The first step in waymoframe2dict.py, convert tf record file to frames dictionary (the key is the frame_timestamp_micros), there are 199 frames each tf record file.
+```bash
+framesdict = extract_onesegment_toframe(fileidx, data_files, step)
+```
+Use "convert_frame_to_dict" to convert the frame to dictionary 
+```bash
+framedict=convert_frame_to_dict(frame)
+```
+The keys, shapes, and data types are:
+```bash
+    POSE: 4x4 float32 array
+    For each lidar:
+      <LIDAR_NAME>_BEAM_INCLINATION: H float32 array
+      <LIDAR_NAME>_LIDAR_EXTRINSIC: 4x4 float32 array
+      <LIDAR_NAME>_RANGE_IMAGE_FIRST_RETURN: HxWx6 float32 array
+      <LIDAR_NAME>_RANGE_IMAGE_SECOND_RETURN: HxWx6 float32 array
+      <LIDAR_NAME>_CAM_PROJ_FIRST_RETURN: HxWx6 int64 array
+      <LIDAR_NAME>_CAM_PROJ_SECOND_RETURN: HxWx6 float32 array
+      (top lidar only) TOP_RANGE_IMAGE_POSE: HxWx6 float32 array
+    For each camera:
+      <CAMERA_NAME>_IMAGE: HxWx3 uint8 array
+      <CAMERA_NAME>_INTRINSIC: 9 float32 array
+      <CAMERA_NAME>_EXTRINSIC: 4x4 float32 array
+      <CAMERA_NAME>_WIDTH: int64 scalar
+      <CAMERA_NAME>_HEIGHT: int64 scalar
+```
+Among all keys, FRONT_IMAGE: <class 'numpy.ndarray'>, (1280, 1920, 3); TOP_RANGE_IMAGE_FIRST_RETURN is <class 'numpy.ndarray'> (64, 2650, 6), HxWx6 The six channels are range, intensity, elongation, x, y, and z. The x, y, and z values are in vehicle frame. 
+
+The lidar spherical coordinate system is based on the Cartesian coordinate system in lidar sensor frame. A point (x, y, z) in lidar Cartesian coordinates can be uniquely translated to a (range, azimuth, inclination) tuple in lidar spherical coordinates.
+
+
+## Waymo Dataset Preparation (Data Conversion)
 * WaymoStartHPC.ipynb is modified based on Waymo official sample and added bounding box visualization of the original Waymo Dataset (TFRecord format)
 * create_waymo_train_tfrecord.py and create_waymo_val_tfrecord.py are used to convert the original Waymo Dataset (TFRecord format) to TFRecord files used for Tensorflow object detection
 * WaymoNewtoCOCO.ipynb is the code to convert the original Waymo Dataset (TFRecord format) to COCO format.
