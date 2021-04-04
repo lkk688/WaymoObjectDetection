@@ -1,5 +1,5 @@
 
-from MyMM3DObjectDetector import MyMM3DObjectDetector
+from MyDetectors import MyMM3DObjectDetector
 import glob
 import time
 import pickle
@@ -26,7 +26,7 @@ class kittiargs:
     configfile=basefolder+'configs/pointpillars/hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class.py'
     checkpoint = basefolder+ 'myresults/epoch_120.pth'
 
-mydetector = MyMM3DObjectDetector(kittiargs)#mm3ddetectorargs)
+mydetector = MyMM3DObjectDetector.MyMM3DObjectDetector(mm3ddetectorargs)#mm3ddetectorargs)
 
 #point_cloud = '/Developer/3DObject/mmdetection3d/demo/kitti_000008.bin'
 point_cloud = '/DATA5T/Dataset/Kitti/testing/velodyne/000001.bin'
@@ -41,13 +41,13 @@ t_start = time.time()
 for lidaridx in range(0,200):
     c_start = time.time()
     point_cloud = lidarpath[lidaridx]
-    result= mydetector.detect(point_cloud)
-    boxes_3d = result[0]['boxes_3d'].tensor.numpy()
-    scores_3d = result[0]['scores_3d'].numpy()
-    labels_3d = result[0]['labels_3d'].numpy()
+    result= mydetector.detectfile(point_cloud)
+    boxes_3d = result['boxes']
+    scores_3d = result['scores']
+    labels_3d = result['classes']
     print(labels_3d)
     lasttime=time.time() - c_start
-    result_obj = {'lidaridx':lidaridx, 'point_cloud_path':point_cloud, 'boxes_3d':boxes_3d,'scores_3d':scores_3d, 'labels_3d':labels_3d, 'lasttime':lasttime}
+    result_obj = {'lidaridx':lidaridx, 'point_cloud_path':point_cloud, 'boxes':boxes_3d,'scores':scores_3d, 'classes':labels_3d, 'lasttime':lasttime}
     results.append(result_obj)
     print(f'Finished file {lidaridx}, Execution time: { lasttime }')
         
