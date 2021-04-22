@@ -12,6 +12,8 @@ from copy import deepcopy
 from mmdet3d.datasets.pipelines import Compose
 from mmdet3d.core.bbox import get_box_type
 
+from mmdet3d.core.points.lidar_points import LiDARPoints
+
 def convert_SyncBN(config):
     """Convert config's naiveSyncBN to BN.
 
@@ -86,7 +88,7 @@ class MyMM3DObjectDetector(object):
             pts_mask_fields=[],
             pts_seg_fields=[],
             bbox_fields=[],
-            mask_fields=[],
+            mask_fields=[], 
             seg_fields=[])
         return data
     
@@ -117,6 +119,8 @@ class MyMM3DObjectDetector(object):
                     dict(type='Collect3D', keys=['points'])
                 ])
         ]
+        #lidarpoints=LiDARPoints(torch.from_numpy(pcd[1,:]))
+        lidarpoints=LiDARPoints(pcd[:,:4], points_dim=4)
         self.test_pipeline = my_pipeline#deepcopy(config.data.test.pipeline)
         self.test_pipeline = Compose(self.test_pipeline)
         box_type_3d, box_mode_3d = get_box_type(config.data.test.box_type_3d)
@@ -133,17 +137,14 @@ class MyMM3DObjectDetector(object):
             pts_seg_fields=[],
             bbox_fields=[],
             mask_fields=[],
-            seg_fields=[])
-        return data
+            seg_fields=[],
+            points=lidarpoints
+            )
+        
+        data = self.test_pipeline(data)
+        #data['points']=pcd
+        data = collate([data], samples_per_gpu=1)
 
-    def datafrompcd(self, config, pcd):
-        box_type_3d, box_mode_3d = get_box_type(config.data.test.box_type_3d)
-        datadict={}
-        datadict['points']=pcd
-        datadict['img_metas']=dict(flip=False, pcd_horizontal_flip=False, pcd_vertical_flip=False,
-            box_mode_3d=box_mode_3d, box_type_3d=box_type_3d,
-            pcd_trans=[0., 0., 0.], pcd_scale_factor=1.0, pts_filename='', transformation_3d_flow=['R', 'S','T'])
-        data=[datadict]
         return data
 
     def detectfile(self, pcdfiles):
@@ -168,10 +169,43 @@ class MyMM3DObjectDetector(object):
             'scores': scores_3d,
             'classes': labels_3d}
     
+    def datafrompcd(self, config, pcd):
+        box_type_3d, box_mode_3d = get_box_type(config.data.test.box_type_3d)
+        datadict={}
+        datadict['points']=pcd
+        datadict['img_metas']=dict(flip=False, pcd_horizontal_flip=False, pcd_vertical_flip=False,
+            box_mode_3d=box_mode_3d, box_type_3d=box_type_3d,
+            pcd_trans=[0., 0., 0.], pcd_scale_factor=1.0, pts_filename='', transformation_3d_flow=['R', 'S','T'])
+        data=[datadict]
+        return data
+
     def detect(self, pcd):
         #self.data['pts_filename']=pcd
         #data = self.datapipelinefromlidarfile(self.model.cfg, pcd)
         data =self.datafrompcd(self.model.cfg, pcd)
+
+        device = next(self.model.parameters()).device  # model device
+ 
+        if next(self.model.parameters()).is_cuda:
+            # scatter to specified GPU
+            data = scatter(data, [device.index])[0]
+        # forward the model
+        with torch.no_grad():
+            result = self.model(return_loss=False, rescale=True, **data)
+        #return result, data
+        boxes_3d = result[0]['boxes_3d'].tensor.numpy()
+        scores_3d = result[0]['scores_3d'].numpy()
+        labels_3d = result[0]['labels_3d'].numpy()
+        return {'boxes': boxes_3d,
+            'scores': scores_3d,
+            'classes': labels_3d}
+    
+    def rundetect(self, pcd):
+        #self.data['pts_filename']=pcd
+        #data = self.datapipelinefromlidarfile(self.model.cfg, pcd)
+        #pointsdata =self.datafrompcd(self.model.cfg, pcd)#x*5
+
+        data = self.datapipelinefrompcd(self.model.cfg, pcd)
 
         device = next(self.model.parameters()).device  # model device
  

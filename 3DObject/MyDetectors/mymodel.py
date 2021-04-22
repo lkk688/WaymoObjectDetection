@@ -40,7 +40,7 @@ def initialize_model():
   """Method that will be called by the evaluation script to load the model and weights.
   """
   global model
-  model = MyMM3DObjectDetector(kittiargs)
+  model = MyMM3DObjectDetector.MyMM3DObjectDetector(kittiargs)
 
 
 #pc HxWx6 The six channels are range, intensity, elongation, x, y, and z. The x, y, and z values are in vehicle frame.
@@ -101,7 +101,7 @@ def _process_inputs(input_sensor_dict):
     points.append(lidar_range_image[:, [3, 4, 5, 1, 2]])
 
   # Concatenate points from all lidars.
-  points_all = np.concatenate(points, axis=0).astype(np.float32)
+  points_all = np.concatenate(points, axis=0).astype(np.float32)#x*5
   points_all[:, 3] = np.tanh(points_all[:, 3])#??
 
   return points_all #dataset_processor.prepare_data(data_dict={'points': points_all})
@@ -115,9 +115,9 @@ def run_model(**kwargs):
   Returns:
     Dict from string to numpy ndarray.
   """
-  datainput = _process_inputs(kwargs)
+  datainput = _process_inputs(kwargs)#x*5 points
 
-  result= model.detect(datainput)
+  result= model.rundetect(datainput)
   return result
 
 # def run_model2(**kwargs):
