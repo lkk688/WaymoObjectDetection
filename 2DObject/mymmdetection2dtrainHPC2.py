@@ -76,7 +76,7 @@ cfg.checkpoint_config.interval = 1
 cfg.seed = 0
 set_random_seed(0, deterministic=False)
 cfg.gpu_ids = range(1)
-cfg.total_epochs = 4
+cfg.total_epochs = 12
 
 #cfg.model.pretrained = '~/.cache/torch/hub/checkpoints/resnet50_msra-5891d200.pth'#'/home/014562561/model3/resnet50_msra-5891d200.pth'
 
