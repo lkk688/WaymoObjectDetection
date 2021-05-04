@@ -37,17 +37,17 @@ cfg.dataset_type = 'CocoDataset'
 
 cfg.data.test.type = 'CocoDataset'
 cfg.data.test.data_root = data_root #'/home/014562561/images/bdd100k/images/100k/val/'
-cfg.data.test.ann_file = data_root + 'annotations_valallnew.json' #'/home/014562561/newAnnotations-mmdetect/bdd100k_labels_images_det_coco_val.json'
+cfg.data.test.ann_file = data_root + 'annotations_val20new.json'#'annotations_valallnew.json' #'/home/014562561/newAnnotations-mmdetect/bdd100k_labels_images_det_coco_val.json'
 cfg.data.test.img_prefix =  ''
 
 cfg.data.train.type = 'CocoDataset'
 cfg.data.train.data_root = data_root #'/home/014562561/images/bdd100k/images/100k/train/'
-cfg.data.train.ann_file = data_root + 'annotations_trainallnew.json'#'/home/014562561/newAnnotations-mmdetect/bdd100k_labels_images_det_coco_train.json'
+cfg.data.train.ann_file = data_root + 'annotations_train20new.json'#'/home/014562561/newAnnotations-mmdetect/bdd100k_labels_images_det_coco_train.json'
 cfg.data.train.img_prefix = ''
 
 cfg.data.val.type = 'CocoDataset'
 cfg.data.val.data_root = data_root#'/home/014562561/images/bdd100k/images/100k/val/'
-cfg.data.val.ann_file = data_root + 'annotations_valallnew.json'#'/home/014562561/newAnnotations-mmdetect/bdd100k_labels_images_det_coco_val.json'
+cfg.data.val.ann_file = data_root + 'annotations_val20new.json'#'/home/014562561/newAnnotations-mmdetect/bdd100k_labels_images_det_coco_val.json'
 cfg.data.val.img_prefix = ''
 
 # modify num classes of the model in box head

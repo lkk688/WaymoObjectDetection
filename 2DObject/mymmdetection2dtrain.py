@@ -76,17 +76,17 @@ def maintrain(args):
     cfg.dataset_type = 'CocoDataset'
     cfg.data.test.type = 'CocoDataset'
     cfg.data.test.data_root = args.data_root 
-    cfg.data.test.ann_file = args.data_root + 'annotations_valallnew.json'
+    cfg.data.test.ann_file = args.data_root + 'annotations_val20new.json' #'annotations_valallnew.json'
     cfg.data.test.img_prefix =  ''
 
     cfg.data.train.type = 'CocoDataset'
     cfg.data.train.data_root = args.data_root
-    cfg.data.train.ann_file = args.data_root + 'annotations_trainallnew.json'
+    cfg.data.train.ann_file = args.data_root + 'annotations_train20new.json' #'annotations_trainallnew.json'
     cfg.data.train.img_prefix = ''
 
     cfg.data.val.type = 'CocoDataset'
     cfg.data.val.data_root = args.data_root
-    cfg.data.val.ann_file = args.data_root + 'annotations_valallnew.json'
+    cfg.data.val.ann_file = args.data_root + 'annotations_val20new.json' #'annotations_valallnew.json'
     cfg.data.val.img_prefix = ''
 
     # modify num classes of the model in box head
