@@ -38,11 +38,12 @@ from mmdet.utils import collect_env, get_root_logger
 import numpy as np
 
 class mmargs:
-    Basemmdetection='/Developer/3DObject/mmdetection/'
-    config = Basemmdetection+'configs/faster_rcnn/myfaster_rcnn_x101_64x4d_fpn_1x_coco.py'
+    #Basemmdetection='/Developer/3DObject/mmdetection/'
+    MyBasemmdetection='/Developer/3DObject/mymmdetection/'
+    config = MyBasemmdetection+'configs/faster_rcnn/myfaster_rcnn_x101_64x4d_fpn_1x_coco.py'
     # Setup a checkpoint file to load
-    checkpoint = Basemmdetection+'checkpoints/faster_rcnn_x101_64x4d_fpn_1x_coco_20200204-833ee192.pth'
-    workdir = Basemmdetection+"waymococo_fasterrcnntrain"
+    checkpoint = MyBasemmdetection+'checkpoints/faster_rcnn_x101_64x4d_fpn_1x_coco_20200204-833ee192.pth'
+    workdir = MyBasemmdetection+"waymococo_fasterrcnntrain"
     resumefrom = None #basefolder+ 'myresults/epoch_120.pth'
     novalidate = False
     gpus = 1 
@@ -50,15 +51,52 @@ class mmargs:
     seed =None
     deterministic=True
     classes=('vehicle', 'pedestrian', 'sign', 'cyclist')#('person', 'bicycle', 'car')
+    data_root = '/DATA5T/Dataset/WaymoCOCO/'
+
+class mmargsfasterr101:
+    #Basemmdetection='/Developer/3DObject/mmdetection/'
+    MyBasemmdetection='/Developer/3DObject/mymmdetection/'
+    config = MyBasemmdetection+'configs/faster_rcnn/faster_rcnn_r101_fpn_2x_coco.py'
+    # Setup a checkpoint file to load
+    checkpoint = MyBasemmdetection+'checkpoints/faster_rcnn_r101_fpn_2x_coco_bbox_mAP-0.398_20200504_210455-1d2dac9c.pth'
+    workdir = MyBasemmdetection+"waymococo_fasterrcnnr101train"
+    resumefrom = None #basefolder+ 'myresults/epoch_120.pth'
+    novalidate = False
+    gpus = 1 
+    gpuids = None
+    seed =None
+    deterministic=True
+    classes=('vehicle', 'pedestrian', 'sign', 'cyclist')#('person', 'bicycle', 'car')
+    data_root = '/DATA5T/Dataset/WaymoCOCO/'
 
 def maintrain(args):
     cfg = Config.fromfile(args.config)
 
+    # New add to setup the dataset, no need to change the configuration file
+    cfg.dataset_type = 'CocoDataset'
+    cfg.data.test.type = 'CocoDataset'
+    cfg.data.test.data_root = args.data_root 
+    cfg.data.test.ann_file = args.data_root + 'annotations_valallnew.json'
+    cfg.data.test.img_prefix =  ''
+
+    cfg.data.train.type = 'CocoDataset'
+    cfg.data.train.data_root = args.data_root
+    cfg.data.train.ann_file = args.data_root + 'annotations_trainallnew.json'
+    cfg.data.train.img_prefix = ''
+
+    cfg.data.val.type = 'CocoDataset'
+    cfg.data.val.data_root = args.data_root
+    cfg.data.val.ann_file = args.data_root + 'annotations_valallnew.json'
+    cfg.data.val.img_prefix = ''
+
+    # modify num classes of the model in box head
+    cfg.model.roi_head.bbox_head.num_classes = len(args.classes)# 4
+
     # import modules from string list.
-    if cfg.get('custom_imports', None):
+    if cfg.get('custom_imports', None):#not used
         from mmcv.utils import import_modules_from_strings
         import_modules_from_strings(**cfg['custom_imports'])
-    # set cudnn_benchmark
+    # set cudnn_benchmark, benchmark mode is good whenever your input sizes for your network do not vary. This way, cudnn will look for the optimal set of algorithms for that particular configuration (which takes some time). This usually leads to faster runtime.
     if cfg.get('cudnn_benchmark', False):
         torch.backends.cudnn.benchmark = True
 
@@ -105,7 +143,7 @@ def maintrain(args):
     logger.info(f'Config:\n{cfg.pretty_text}')
 
     # set random seeds
-    if args.seed is not None:
+    if args.seed is not None: #not used
         logger.info(f'Set random seed to {args.seed}, '
                     f'deterministic: {args.deterministic}')
         set_random_seed(args.seed, deterministic=args.deterministic)
@@ -142,5 +180,5 @@ def maintrain(args):
 
 
 if __name__ == "__main__":
-    maintrain(mmargs)
+    maintrain(mmargsfasterr101)#(mmargs)
     

@@ -7,7 +7,7 @@ _base_ = [
 
 model = dict(
     type='FasterRCNN',
-    pretrained='open-mmlab://resnext101_64x4d',
+    pretrained='open-mmlab://resnext101_64x4d', 
     backbone=dict(
         type='ResNeXt',
         depth=101,
