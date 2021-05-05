@@ -89,6 +89,11 @@ def maintrain(args):
     cfg.data.val.ann_file = args.data_root + 'annotations_val20new.json' #'annotations_valallnew.json'
     cfg.data.val.img_prefix = ''
 
+    #batch size=2, workers=0, eta: 1 day, 5:56:54,  memory: 5684
+    cfg.data.samples_per_gpu = 4 #batch size
+    cfg.data.workers_per_gpu = 4
+    #eta: 1 day, 6:17:04, memory: 10234
+
     # modify num classes of the model in box head
     cfg.model.roi_head.bbox_head.num_classes = len(args.classes)# 4
 

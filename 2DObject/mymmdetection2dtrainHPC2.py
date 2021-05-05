@@ -20,7 +20,7 @@ config = Basemmdetection+'configs/faster_rcnn/faster_rcnn_r101_fpn_2x_coco.py'
 checkpoint = Basemmdetection+'checkpoints/faster_rcnn_r101_fpn_2x_coco_bbox_mAP-0.398_20200504_210455-1d2dac9c.pth'
 #checkpoint = '/home/014562561/model3/faster_rcnn_r101_fpn_2x_coco_bbox_mAP-0.398_20200504_210455-1d2dac9c.pth'
 # initialize the detector
-model1 = init_detector(config, checkpoint, device='cuda:0')
+#model1 = init_detector(config, checkpoint, device='cuda:0')
 
 data_root = '/data/cmpe249-f20/WaymoCOCOMulti/trainvalall/'
 classes=('vehicle', 'pedestrian', 'sign', 'cyclist')
@@ -50,6 +50,7 @@ cfg.data.val.data_root = data_root#'/home/014562561/images/bdd100k/images/100k/v
 cfg.data.val.ann_file = data_root + 'annotations_val20new.json'#'/home/014562561/newAnnotations-mmdetect/bdd100k_labels_images_det_coco_val.json'
 cfg.data.val.img_prefix = ''
 
+
 cfg.data.samples_per_gpu = 4 #batch size
 cfg.data.workers_per_gpu = 4
 
@@ -57,10 +58,11 @@ cfg.data.workers_per_gpu = 4
 cfg.model.roi_head.bbox_head.num_classes = len(classes)# 10
 # We can still use the pre-trained Mask RCNN model though we do not need to
 # use the mask branch
-cfg.load_from = checkpoint #'/home/014562561/model3/faster_rcnn_r101_fpn_2x_coco_bbox_mAP-0.398_20200504_210455-1d2dac9c.pth'
+cfg.load_from = checkpoint #
+cfg.resume_from = workdir + "/epoch_12.pth"
 
 # Set up working dir to save files and logs.
-cfg.work_dir = workdir #'/home/014562561/model3/output-fasterrcnn'
+cfg.work_dir = workdir #
 
 # The original learning rate (LR) is set for 8-GPU training.
 # We divide it by 8 since we only use one GPU.
@@ -79,7 +81,7 @@ cfg.checkpoint_config.interval = 1
 cfg.seed = 0
 set_random_seed(0, deterministic=False)
 cfg.gpu_ids = range(1)
-cfg.total_epochs = 12
+cfg.total_epochs = 24
 
 #cfg.model.pretrained = '~/.cache/torch/hub/checkpoints/resnet50_msra-5891d200.pth'#'/home/014562561/model3/resnet50_msra-5891d200.pth'
 

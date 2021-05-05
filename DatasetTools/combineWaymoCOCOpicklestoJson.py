@@ -102,7 +102,8 @@ if __name__ == "__main__":
 
     create_partial_data = True
     if create_partial_data:
-        convertasubsample(allfiles_len, alltrainfiles_len, 20, 20)
+        convertasubsample(allfiles_len, alltrainfiles_len, 200, 50)
+        #convertasubsample(allfiles_len, alltrainfiles_len, 20, 20)
 
     images = []
     annotations = []
