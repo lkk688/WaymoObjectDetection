@@ -18,12 +18,12 @@ import tensorflow.compat.v1 as tf
 import datetime
 from glob import glob
 
-waymo_label_map_dict = {
-    'Unknown': 0,
-    'Vehicles': 1,
-    'Pedestrians': 2,
-    'Cyclists': 3,
-}
+# waymo_label_map_dict = {
+#     'Unknown': 0,
+#     'Vehicles': 1,
+#     'Pedestrians': 2,
+#     'Cyclists': 3,
+# }
 
 def int64_feature(value):
     return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
@@ -219,7 +219,7 @@ def _create_tf_record_from_coco_annotations(annotations_file, image_dir,
 
 if __name__ == "__main__":
     num_shards=5
-    label_map_dict = waymo_label_map_dict
+    #label_map_dict = waymo_label_map_dict
     #annotations_file = "/DATA5T/Dataset/WaymoCOCO/annotations_train200filteredbig.json"
     annotations_file = "/DATA5T/Dataset/WaymoCOCO/annotations_train20filteredbig.json"
     image_dir= '/DATA5T/Dataset/WaymoCOCO/'
