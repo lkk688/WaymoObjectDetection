@@ -60,7 +60,7 @@ class mmargsfasterr101:
     # Setup a checkpoint file to load
     checkpoint = MyBasemmdetection+'checkpoints/faster_rcnn_r101_fpn_2x_coco_bbox_mAP-0.398_20200504_210455-1d2dac9c.pth'
     workdir = MyBasemmdetection+"waymococo_fasterrcnnr101train"
-    resumefrom = None #basefolder+ 'myresults/epoch_120.pth'
+    resumefrom = workdir+"/epoch_24.pth" #None #basefolder+ 'myresults/epoch_120.pth'
     novalidate = False
     gpus = 1 
     gpuids = None
@@ -68,6 +68,7 @@ class mmargsfasterr101:
     deterministic=True
     classes=('vehicle', 'pedestrian', 'sign', 'cyclist')#('person', 'bicycle', 'car')
     data_root = '/DATA5T/Dataset/WaymoCOCO/'
+    total_epochs = 48
 
 def maintrain(args):
     cfg = Config.fromfile(args.config)
@@ -76,12 +77,12 @@ def maintrain(args):
     cfg.dataset_type = 'CocoDataset'
     cfg.data.test.type = 'CocoDataset'
     cfg.data.test.data_root = args.data_root 
-    cfg.data.test.ann_file = args.data_root + 'annotations_val20new.json' #'annotations_valallnew.json'
+    cfg.data.test.ann_file = args.data_root + 'annotations_val50new.json' #'annotations_valallnew.json'
     cfg.data.test.img_prefix =  ''
 
     cfg.data.train.type = 'CocoDataset'
     cfg.data.train.data_root = args.data_root
-    cfg.data.train.ann_file = args.data_root + 'annotations_train20new.json' #'annotations_trainallnew.json'
+    cfg.data.train.ann_file = args.data_root + 'annotations_train200new.json' #'annotations_trainallnew.json'
     cfg.data.train.img_prefix = ''
 
     cfg.data.val.type = 'CocoDataset'
@@ -93,6 +94,9 @@ def maintrain(args):
     cfg.data.samples_per_gpu = 4 #batch size
     cfg.data.workers_per_gpu = 4
     #eta: 1 day, 6:17:04, memory: 10234
+
+    cfg.total_epochs = args.total_epochs
+    cfg.runner.max_epochs = args.total_epochs 
 
     # modify num classes of the model in box head
     cfg.model.roi_head.bbox_head.num_classes = len(args.classes)# 4
