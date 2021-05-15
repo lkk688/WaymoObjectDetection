@@ -118,34 +118,36 @@ def create_tf_example(image,
         images_noannotation += 1
         print("No Annotations")
     feature_dict = {
-      'image/height':
-          int64_feature(image_height),
-      'image/width':
-          int64_feature(image_width),
-      'image/filename':
-          bytes_feature(filename.encode('utf8')),
-      'image/source_id':
-          bytes_feature(str(image_id).encode('utf8')),
-      'image/key/sha256':
-          bytes_feature(key.encode('utf8')),
-      'image/encoded':
-          bytes_feature(encoded_jpg),
-      'image/format':
-          bytes_feature('jpeg'.encode('utf8')),
-      'image/object/bbox/xmin':
-          float_list_feature(xmin),
-      'image/object/bbox/xmax':
-          float_list_feature(xmax),
-      'image/object/bbox/ymin':
-          float_list_feature(ymin),
-      'image/object/bbox/ymax':
-          float_list_feature(ymax),
-      'image/object/class/text':
-          bytes_list_feature(category_names),
-      'image/object/is_crowd':
-          int64_list_feature(is_crowd),
-      'image/object/area':
-          float_list_feature(area),
+        'image/height':
+            int64_feature(image_height),
+        'image/width':
+            int64_feature(image_width),
+        'image/filename':
+            bytes_feature(filename.encode('utf8')),
+        'image/source_id':
+            bytes_feature(str(image_id).encode('utf8')),
+        'image/key/sha256':
+            bytes_feature(key.encode('utf8')),
+        'image/encoded':
+            bytes_feature(encoded_jpg),
+        'image/format':
+            bytes_feature('jpeg'.encode('utf8')),
+        'image/object/bbox/xmin':
+            float_list_feature(xmin),
+        'image/object/bbox/xmax':
+            float_list_feature(xmax),
+        'image/object/bbox/ymin':
+            float_list_feature(ymin),
+        'image/object/bbox/ymax':
+            float_list_feature(ymax),
+        'image/object/class/text':
+            bytes_list_feature(category_names),
+        'image/object/class/label':
+            int64_list_feature(category_ids),
+        'image/object/is_crowd':
+            int64_list_feature(is_crowd),
+        'image/object/area':
+            float_list_feature(area),
     }
     example = tf.train.Example(features=tf.train.Features(feature=feature_dict))
     return (key, example, num_annotations_skipped, images_noannotation)
@@ -225,10 +227,25 @@ if __name__ == "__main__":
     image_dir= '/DATA5T/Dataset/WaymoCOCO/'
     #output_path='/DATA5T/Dataset/WaymoTFRecord/TFRecordTrain-'
     output_path='/DATA5T/Dataset/WaymoTFRecord/train20val5filtered/TFRecordTrainBig-'
-    _create_tf_record_from_coco_annotations(annotations_file, image_dir, output_path, num_shards)
+    #_create_tf_record_from_coco_annotations(annotations_file, image_dir, output_path, num_shards)
 
     #annotations_file = "/DATA5T/Dataset/WaymoCOCO/annotations_val50filteredbig.json"
     #output_path='/DATA5T/Dataset/WaymoTFRecord/TFRecordVal-'
     annotations_file = "/DATA5T/Dataset/WaymoCOCO/annotations_val5filteredbig.json"
     output_path='/DATA5T/Dataset/WaymoTFRecord/train20val5filtered/TFRecordValBig-' 
-    _create_tf_record_from_coco_annotations(annotations_file, image_dir, output_path, num_shards) 
+    #_create_tf_record_from_coco_annotations(annotations_file, image_dir, output_path, num_shards) 
+
+
+    annotations_file = "/DATA5T/Dataset/WaymoCOCO/annotations_train684filteredbig.json"
+    image_dir= '/DATA5T/Dataset/WaymoCOCO/'
+    #output_path='/DATA5T/Dataset/WaymoTFRecord/TFRecordTrain-'
+    output_path='/DATA5T/Dataset/WaymoTFRecord/TFRecordTrain684Big-'
+    num_shards=20
+    _create_tf_record_from_coco_annotations(annotations_file, image_dir, output_path, num_shards)
+
+    #annotations_file = "/DATA5T/Dataset/WaymoCOCO/annotations_val50filteredbig.json"
+    #output_path='/DATA5T/Dataset/WaymoTFRecord/TFRecordVal-'
+    annotations_file = "/DATA5T/Dataset/WaymoCOCO/annotations_val202filteredbig.json"
+    output_path='/DATA5T/Dataset/WaymoTFRecord/TFRecordVal202Big-' 
+    num_shards=5
+    _create_tf_record_from_coco_annotations(annotations_file, image_dir, output_path, num_shards)  
