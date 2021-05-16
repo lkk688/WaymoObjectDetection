@@ -249,13 +249,13 @@ if __name__ == "__main__":
     annotations_file = "/DATA5T/Dataset/WaymoCOCO/annotations_train684filteredbig.json"
     image_dir= '/DATA5T/Dataset/WaymoCOCO/'
     #output_path='/DATA5T/Dataset/WaymoTFRecord/TFRecordTrain-'
-    output_path='/DATA5T/Dataset/WaymoTFRecord/TFRecordTrain684Big-'
+    output_path='/DATA5T/Dataset/WaymoTFRecord/trainvalall/TFRecordTrain684Big-'
     num_shards=40
     _create_tf_record_from_coco_annotations(annotations_file, image_dir, output_path, num_shards)
 
     #annotations_file = "/DATA5T/Dataset/WaymoCOCO/annotations_val50filteredbig.json"
     #output_path='/DATA5T/Dataset/WaymoTFRecord/TFRecordVal-'
     annotations_file = "/DATA5T/Dataset/WaymoCOCO/annotations_val202filteredbig.json"
-    output_path='/DATA5T/Dataset/WaymoTFRecord/TFRecordVal202Big-' 
+    output_path='/DATA5T/Dataset/WaymoTFRecord/trainvalall/TFRecordVal202Big-' 
     num_shards=10
     _create_tf_record_from_coco_annotations(annotations_file, image_dir, output_path, num_shards)  

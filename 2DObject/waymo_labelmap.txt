@@ -1,0 +1,21 @@
+
+item {
+  id: 1
+  name: 'vehicle'
+}
+
+item {
+  id: 2
+  name: 'pedestrian'
+}
+
+item {
+  id: 3
+  name: 'sign'
+}
+
+item {
+  id: 4
+  name: 'cyclist'
+}
+
