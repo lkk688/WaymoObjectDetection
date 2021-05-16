@@ -60,7 +60,7 @@ class mmargsfasterr101:
     # Setup a checkpoint file to load
     checkpoint = MyBasemmdetection+'checkpoints/faster_rcnn_r101_fpn_2x_coco_bbox_mAP-0.398_20200504_210455-1d2dac9c.pth'
     workdir = MyBasemmdetection+"waymococo_fasterrcnnr101train"
-    resumefrom = workdir+"/epoch_24.pth" #None #basefolder+ 'myresults/epoch_120.pth'
+    resumefrom = workdir+"/epoch_41.pth"#"/epoch_24.pth" #None #basefolder+ 'myresults/epoch_120.pth'
     novalidate = False
     gpus = 1 
     gpuids = None
@@ -77,17 +77,17 @@ def maintrain(args):
     cfg.dataset_type = 'CocoDataset'
     cfg.data.test.type = 'CocoDataset'
     cfg.data.test.data_root = args.data_root 
-    cfg.data.test.ann_file = args.data_root + 'annotations_val50new.json' #'annotations_valallnew.json'
+    cfg.data.test.ann_file = args.data_root + 'annotations_val20filteredbig.json'#'annotations_val50new.json' #'annotations_valallnew.json'
     cfg.data.test.img_prefix =  ''
 
     cfg.data.train.type = 'CocoDataset'
     cfg.data.train.data_root = args.data_root
-    cfg.data.train.ann_file = args.data_root + 'annotations_train200new.json' #'annotations_trainallnew.json'
+    cfg.data.train.ann_file = args.data_root + 'annotations_train684filteredbig.json'#'annotations_train200new.json' #'annotations_trainallnew.json'
     cfg.data.train.img_prefix = ''
 
     cfg.data.val.type = 'CocoDataset'
     cfg.data.val.data_root = args.data_root
-    cfg.data.val.ann_file = args.data_root + 'annotations_val20new.json' #'annotations_valallnew.json'
+    cfg.data.val.ann_file = args.data_root + 'annotations_val20filteredbig.json'#'annotations_val20new.json' #'annotations_valallnew.json'
     cfg.data.val.img_prefix = ''
 
     #batch size=2, workers=0, eta: 1 day, 5:56:54,  memory: 5684
