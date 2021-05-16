@@ -12,7 +12,10 @@ import os
 #import contextlib2
 import numpy as np
 import PIL.Image
+#import tensorflow.compat.v1 as tf
+#import tensorflow as tf
 import tensorflow.compat.v1 as tf
+
 #from dataset import label_map_util
 #from dataset import tfrecord_util
 import datetime
@@ -76,6 +79,7 @@ def create_tf_example(image,
     image_height = image['height']#1280
     image_width = image['width']#1920
     filename = image['file_name']
+    print("Image filename:", filename)
     image_id = image['id']
     full_path = os.path.join(image_dir, filename)
     with tf.gfile.GFile(full_path, 'rb') as fid:
@@ -116,7 +120,7 @@ def create_tf_example(image,
     
     if len(xmin)<1:
         images_noannotation += 1
-        print("No Annotations")
+        print("No Annotations, image id:", image_id)
     feature_dict = {
         'image/height':
             int64_feature(image_height),
@@ -178,6 +182,11 @@ def _create_tf_record_from_coco_annotations(annotations_file, image_dir,
                                   (i, num_shards))
         for i in range(num_shards)
     ]
+    # writers = [
+    #     tf.io.TFRecordWriter(output_path + '-%05d-of-%05d.tfrecord' %
+    #                               (i, num_shards))
+    #     for i in range(num_shards)
+    # ]
 
     annotations_index = {}
     if 'annotations' in groundtruth_data:
@@ -220,19 +229,20 @@ def _create_tf_record_from_coco_annotations(annotations_file, image_dir,
     
 
 if __name__ == "__main__":
-    num_shards=5
+    num_shards=10
     #label_map_dict = waymo_label_map_dict
     #annotations_file = "/DATA5T/Dataset/WaymoCOCO/annotations_train200filteredbig.json"
-    annotations_file = "/DATA5T/Dataset/WaymoCOCO/annotations_train20filteredbig.json"
+    annotations_file = "/DATA5T/Dataset/WaymoCOCO/annotations_train100filteredbig.json"
     image_dir= '/DATA5T/Dataset/WaymoCOCO/'
     #output_path='/DATA5T/Dataset/WaymoTFRecord/TFRecordTrain-'
-    output_path='/DATA5T/Dataset/WaymoTFRecord/train20val5filtered/TFRecordTrainBig-'
+    output_path='/DATA5T/Dataset/WaymoTFRecord/train100val20/TFRecordTrainBig-'
     #_create_tf_record_from_coco_annotations(annotations_file, image_dir, output_path, num_shards)
 
     #annotations_file = "/DATA5T/Dataset/WaymoCOCO/annotations_val50filteredbig.json"
     #output_path='/DATA5T/Dataset/WaymoTFRecord/TFRecordVal-'
-    annotations_file = "/DATA5T/Dataset/WaymoCOCO/annotations_val5filteredbig.json"
-    output_path='/DATA5T/Dataset/WaymoTFRecord/train20val5filtered/TFRecordValBig-' 
+    annotations_file = "/DATA5T/Dataset/WaymoCOCO/annotations_val20filteredbig.json"
+    output_path='/DATA5T/Dataset/WaymoTFRecord/train100val20/TFRecordValBig-' 
+    num_shards=5
     #_create_tf_record_from_coco_annotations(annotations_file, image_dir, output_path, num_shards) 
 
 
@@ -240,12 +250,12 @@ if __name__ == "__main__":
     image_dir= '/DATA5T/Dataset/WaymoCOCO/'
     #output_path='/DATA5T/Dataset/WaymoTFRecord/TFRecordTrain-'
     output_path='/DATA5T/Dataset/WaymoTFRecord/TFRecordTrain684Big-'
-    num_shards=20
+    num_shards=40
     _create_tf_record_from_coco_annotations(annotations_file, image_dir, output_path, num_shards)
 
     #annotations_file = "/DATA5T/Dataset/WaymoCOCO/annotations_val50filteredbig.json"
     #output_path='/DATA5T/Dataset/WaymoTFRecord/TFRecordVal-'
     annotations_file = "/DATA5T/Dataset/WaymoCOCO/annotations_val202filteredbig.json"
     output_path='/DATA5T/Dataset/WaymoTFRecord/TFRecordVal202Big-' 
-    num_shards=5
+    num_shards=10
     _create_tf_record_from_coco_annotations(annotations_file, image_dir, output_path, num_shards)  

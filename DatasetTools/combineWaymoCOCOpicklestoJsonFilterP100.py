@@ -168,6 +168,7 @@ def convertafilteredimagesubsample(outputpath, allfiles_len, alltrainfiles_len, 
         print(f'image width: {img_width}, height: {img_height}')
         filteredimage_index = {}
         #stepsize =10
+        filteredimage_dictarraylist=[]
         for imagedict in image_dictarraylist:
             globalimage_id=imagedict['id']#000000
             cameraname=imagedict['camera_name']#https://github.com/waymo-research/waymo-open-dataset/blob/master/waymo_open_dataset/dataset.proto
@@ -175,10 +176,12 @@ def convertafilteredimagesubsample(outputpath, allfiles_len, alltrainfiles_len, 
             if cameraname=='1' and stepcheck ==0 :
                 print("Image filename: ",imagedict['file_name'])
                 print("Image global id:", globalimage_id) #global image id
+                filteredimage_dictarraylist.append(imagedict)
                 if globalimage_id not in filteredimage_index:
                     filteredimage_index[globalimage_id] = []
                     filteredimage_index[globalimage_id].append(imagedict)
         #print(filteredimage_index)
+        print("filteredimage_dictarraylist length", len(filteredimage_dictarraylist))
 
         #filter out the annotation
         annotation_dictarray=data['annotations'] #list
@@ -201,12 +204,14 @@ def convertafilteredimagesubsample(outputpath, allfiles_len, alltrainfiles_len, 
             annotations = np.append(annotations,newannotation_dictarray_list)
             smallannotations = np.append(smallannotations,smallobjectannotation_dictarray_list)
             #images.append(image_dictarray)
-            images = np.append(images,image_dictarraylist)
+            #images = np.append(images,image_dictarraylist)
+            images = np.append(images,filteredimage_dictarraylist)
             print("Train Images length:", len(images))
         else:
             valannotations = np.append(valannotations,newannotation_dictarray_list)
             smallvalannotations = np.append(smallvalannotations,smallobjectannotation_dictarray_list)
-            valimages = np.append(valimages,image_dictarraylist)
+            valimages = np.append(valimages,filteredimage_dictarraylist)
+            #valimages = np.append(valimages,image_dictarraylist)
             print("Val Images length:", len(valimages))
 
     
@@ -274,5 +279,7 @@ if __name__ == "__main__":
         #convertasubsample(output_dir, allfiles_len, alltrainfiles_len, 200, 50)
         #convertasubsample(output_dir, allfiles_len, alltrainfiles_len, 20, 5)
         convertafilteredimagesubsample(output_dir, allfiles_len, alltrainfiles_len, alltrainfiles_len, allfiles_len-alltrainfiles_len, step_size)
+        
+        #convertafilteredimagesubsample(output_dir, allfiles_len, alltrainfiles_len, 100, 20, step_size) 
         #convertasubsample(allfiles_len, alltrainfiles_len, 20, 20)
     
