@@ -72,7 +72,9 @@ from detectron2.data import detection_utils as utils
 
 from fvcore.transforms.transform import TransformList, Transform, NoOpTransform
 
+from detectron2.modeling import build_model
 
+#standard mapper in https://github.com/facebookresearch/detectron2/blob/master/detectron2/data/dataset_mapper.py
 def mapper(dataset_dict):
  # 自定义mapper
     dataset_dict = copy.deepcopy(dataset_dict)  # 后面要改变这个dict，所以先复制
@@ -84,9 +86,11 @@ def mapper(dataset_dict):
 #     image, transforms = T.apply_transform_gens(
 #         [T.Resize((800, 800)), T.RandomContrast(0.1, 3), T.RandomSaturation(0.1, 2),
 #          T.RandomFlip(prob=0.4, horizontal=True, vertical=False), T.RandomCrop('relative_range', (0.4, 0.6))], image)
+    # image, transforms = T.apply_transform_gens(
+    #     [T.Resize((800, 800)), T.RandomContrast(0.1, 3), T.RandomSaturation(0.1, 2),
+    #      T.RandomFlip(prob=0.4, horizontal=True, vertical=False)], image)
     image, transforms = T.apply_transform_gens(
-        [T.Resize((800, 800)), T.RandomContrast(0.1, 3), T.RandomSaturation(0.1, 2),
-         T.RandomFlip(prob=0.4, horizontal=True, vertical=False)], image)
+        [T.Resize((800, 800)), T.RandomContrast(0.1, 3), T.RandomSaturation(0.1, 2)], image)
     # 数组增强
    
     dataset_dict["image"] = torch.as_tensor(image.transpose(2, 0, 1).astype("float32")) # 转成Tensor
@@ -100,11 +104,14 @@ def mapper(dataset_dict):
     dataset_dict["instances"] = utils.filter_empty_instances(instances)  # 去除空的
     return dataset_dict
 
+#DefaultTrainer in https://github.com/facebookresearch/detectron2/blob/master/detectron2/engine/defaults.py
 class Trainer(DefaultTrainer):
     @classmethod
-    def build_evaluator(cls, cfg, dataset_name):
+    def build_evaluator(cls, cfg, dataset_name, output_folder=None): #It is not implemented by default.
         #output_folder = os.path.join(cfg.OUTPUT_DIR, "inference")
-        output_folder = os.path.join(cfg.OUTPUT_DIR)
+        #output_folder = os.path.join(cfg.OUTPUT_DIR)
+        if output_folder is None:
+            output_folder = os.path.join(cfg.OUTPUT_DIR, "inference")
         evaluators = [COCOEvaluator(dataset_name, cfg, True, output_folder)]
         return DatasetEvaluators(evaluators)
 
@@ -114,11 +121,14 @@ class Trainer(DefaultTrainer):
 
     @classmethod
     def build_train_loader(cls, cfg):#https://detectron2.readthedocs.io/tutorials/data_loading.html#how-the-existing-dataloader-works
+        #It now calls :func:`detectron2.data.build_detection_train_loader`.
+        #Overwrite it if you'd like a different data loader.
         #return build_detection_train_loader(cfg, mapper=DatasetMapper(cfg, True))
-        dataloader = build_detection_train_loader(cfg, mapper=DatasetMapper(cfg, is_train=True)) #https://github.com/facebookresearch/detectron2/blob/63f11718c68f1ae951caee157b4e10fae4d7e4be/projects/DensePose/densepose/data/dataset_mapper.py
+        #dataloader = build_detection_train_loader(cfg, mapper=DatasetMapper(cfg, is_train=True)) #https://github.com/facebookresearch/detectron2/blob/63f11718c68f1ae951caee157b4e10fae4d7e4be/projects/DensePose/densepose/data/dataset_mapper.py
+        
         #T.Augmentation
         #dataloader = build_detection_train_loader(cfg, mapper=DatasetMapper(cfg, is_train=True, augmentations=[]))
-        #dataloader = build_detection_train_loader(cfg, mapper=mapper)
+        dataloader = build_detection_train_loader(cfg, mapper=mapper)
         #data_loader = build_detection_train_loader(cfg, mapper=mapper)
         #dataloader = build_detection_train_loader(cfg, mapper=MyDatasetMapper(cfg, is_train=True))
         #dataloader = build_detection_train_loader(cfg, mapper=NewDatasetMapper(cfg, is_train=True))
@@ -126,6 +136,18 @@ class Trainer(DefaultTrainer):
         #https://github.com/facebookresearch/detectron2/blob/63f11718c68f1ae951caee157b4e10fae4d7e4be/detectron2/data/transforms/augmentation_impl.py
         return dataloader
 
+    @classmethod
+    def build_model(cls, cfg):
+        """
+        Returns:
+            torch.nn.Module:
+        It now calls :func:`detectron2.modeling.build_model`.
+        Overwrite it if you'd like a different model.
+        """
+        model = build_model(cfg)
+        logger = logging.getLogger(__name__)
+        logger.info("My Model:\n{}".format(model))
+        return model
 
 if __name__ == "__main__":
     print("Start the main function.")
@@ -136,7 +158,7 @@ if __name__ == "__main__":
     val_annotation_json=os.path.join(BaseFolder, "annotations_val50new.json")
     val_images=BaseFolder #os.path.join(BaseFolder, "Validation")
 
-    outputpath="/home/010796032/MyRepo/Detectron2output/"
+    outputpath="/home/010796032/MyRepo/Detectron2output/custommodel"
 
     
     #traindataset_dicts = load_coco_json(train_annotation_json,train_images, "mywaymo_dataset_train", extrakeys)
@@ -163,7 +185,8 @@ if __name__ == "__main__":
     print("Model configuration.")
     cfg = get_cfg()
     cfg.OUTPUT_DIR=outputpath #'./output_waymo' #'./output_x101'
-    cfg.merge_from_file(model_zoo.get_config_file("COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml")) #faster_rcnn_R_101_FPN_3x.yaml, faster_rcnn_X_101_32x8d_FPN_3x
+    #cfg.merge_from_file(model_zoo.get_config_file("COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml")) #faster_rcnn_R_101_FPN_3x.yaml, faster_rcnn_X_101_32x8d_FPN_3x
+    cfg.merge_from_file("./mycustom.yaml")
     cfg.DATASETS.TRAIN = ("waymococo_train",)
     cfg.DATASETS.TEST = ("waymococo_val",)
     cfg.DATALOADER.NUM_WORKERS = 2#1 #2
@@ -172,7 +195,7 @@ if __name__ == "__main__":
     #cfg.MODEL.WEIGHTS = os.path.join('/home/010796032/PytorchWork/output', "model_0079999.pth")
     #cfg.MODEL.WEIGHTS = os.path.join('/home/010796032/PytorchWork/output_waymo', "model_0179999.pth")
     cfg.MODEL.WEIGHTS = os.path.join('/home/010796032/MyRepo/Detectron2output/', "model_0619999.pth")#"model_0439999.pth")
-    cfg.SOLVER.IMS_PER_BATCH = 2 #4
+    cfg.SOLVER.IMS_PER_BATCH = 4# 2 #4
     cfg.SOLVER.LR_SCHEDULER_NAME='WarmupCosineLR'
     cfg.SOLVER.BASE_LR = 0.00025  # pick a good LR
     cfg.SOLVER.MAX_ITER = 800000# 140000    # you may need to train longer for a practical dataset
@@ -185,6 +208,7 @@ if __name__ == "__main__":
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
     print("Current Time =", current_time)
+    print(cfg)
 
     # predictor = DefaultPredictor(cfg)
     # evaluator = COCOEvaluator("waymococo_val", cfg, False, output_dir=outputpath)
