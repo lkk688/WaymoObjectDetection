@@ -60,7 +60,7 @@ class mmargsfasterr101:
     # Setup a checkpoint file to load
     checkpoint = MyBasemmdetection+'checkpoints/faster_rcnn_r101_fpn_2x_coco_bbox_mAP-0.398_20200504_210455-1d2dac9c.pth'
     workdir = MyBasemmdetection+"waymococo_fasterrcnnr101train"
-    resumefrom = workdir+"/epoch_41.pth"#"/epoch_24.pth" #None #basefolder+ 'myresults/epoch_120.pth'
+    resumefrom = workdir+"/epoch_48.pth"#"/epoch_24.pth" #None #basefolder+ 'myresults/epoch_120.pth'
     novalidate = False
     gpus = 1 
     gpuids = None
@@ -68,7 +68,7 @@ class mmargsfasterr101:
     deterministic=True
     classes=('vehicle', 'pedestrian', 'sign', 'cyclist')#('person', 'bicycle', 'car')
     data_root = '/DATA5T/Dataset/WaymoCOCO/'
-    total_epochs = 48
+    total_epochs = 60 #48
 
 def maintrain(args):
     cfg = Config.fromfile(args.config)
