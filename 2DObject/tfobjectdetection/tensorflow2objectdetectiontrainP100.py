@@ -439,7 +439,7 @@ def load_fine_tune_checkpoint(model, checkpoint_path, checkpoint_type,
 
     restore_from_objects_dict = model.restore_from_objects(
         fine_tune_checkpoint_type=checkpoint_type)
-    #validate_tf_v2_checkpoint_restore_map(restore_from_objects_dict)
+    validate_tf_v2_checkpoint_restore_map(restore_from_objects_dict)
     ckpt = tf.train.Checkpoint(**restore_from_objects_dict)
     ckpt.restore(checkpoint_path).assert_existing_objects_matched()
 
@@ -591,48 +591,33 @@ def eager_train_step(detection_model,
     return total_loss
 
 
-if __name__ == "__main__":
+NUM_STEPS_PER_ITERATION = 100
 
-    AUTO = tf.data.experimental.AUTOTUNE
-    # Original image size width=1920, height=1280
-    IMAGE_SIZE = [1280, 1920]  # [640, 640] #[192, 192]
-    # TPU can only use data from Google Cloud Storage
-    # TPU can only load data from google cloud
-    train_filenames = tf.io.gfile.glob(
-        '/DATA5T/Dataset/WaymoTFRecord/train100val20/TFRecordValBig--00000-of-00005.tfrecord')
-    display_dataset = load_dataset(train_filenames)
-    display_dataset_iter = iter(display_dataset)
-    decoded_tensors = next(display_dataset_iter)
 
-    # decoded_tensors =next(iter(display_dataset))
-    print(decoded_tensors['groundtruth_boxes'].numpy())
-    print("Image width:", decoded_tensors['width'].numpy())
-    print("Image height:", decoded_tensors['height'].numpy())
-    print("Groundtruth classes:",
-          decoded_tensors['groundtruth_classes'].numpy())
+def train_loop(
+        pipeline_config_path,
+        model_dir,
+        config_override=None,
+        train_steps=None,
+        use_tpu=False,
+        save_final_config=False,
+        checkpoint_every_n=1000,
+        checkpoint_max_to_keep=7,
+        record_summaries=True,
+        performance_summary_exporter=None,
+        num_steps_per_iteration=NUM_STEPS_PER_ITERATION,
+        **kwargs):
+    # """Trains a model using eager + functions.
 
-    testimage = decoded_tensors['image']
-    print("Image type:", type(testimage))
-    print("Image shape:", testimage.shape)
-    testlabel = decoded_tensors['groundtruth_classes'].numpy()
-    testboundingbox = decoded_tensors['groundtruth_boxes'].numpy()
-    # show_oneimage_category(testimage, testlabel, testboundingbox, IMAGE_SIZE)
-    # cv2.imwrite('result.jpg', resultimage)
-
-    cwd = os.getcwd()
-
-    # Print the current working directory
-    print("Current working directory: {0}".format(cwd))
-
-    # Start the training, ref: https://github.com/tensorflow/models/blob/master/research/object_detection/model_main_tf2.py
-    pipeline_config_path = '/Developer/MyRepo/WaymoObjectDetection/2DObject/tfobjectdetection/tf_ssdresnet50_1024_pipeline_P100.config'
-    model_dir = '/Developer/MyRepo/mymodels/tf_ssdresnet50_output'
-    strategy = tf.compat.v2.distribute.MirroredStrategy()
-    num_train_steps = 30000
-    steps_per_sec_list = []
-    checkpoint_every_n=1000
-
-    configs = config_util.get_configs_from_pipeline_file(pipeline_config_path)
+    config_override = None
+    configs = config_util.get_configs_from_pipeline_file(
+        pipeline_config_path, config_override=config_override)
+    kwargs.update({
+        'train_steps': train_steps,
+        'use_bfloat16': configs['train_config'].use_bfloat16 and use_tpu
+    })
+    configs = config_util.merge_external_params_with_configs(
+        configs, None, kwargs_dict=kwargs)
     model_config = configs['model']
     train_config = configs['train_config']
     train_input_config = configs['train_input_config']
@@ -690,111 +675,174 @@ if __name__ == "__main__":
         else:
             def learning_rate_fn(): return learning_rate
 
-        NUM_STEPS_PER_ITERATION = 100
-        num_steps_per_iteration = NUM_STEPS_PER_ITERATION
-        with tf.compat.v2.summary.record_if(
-                lambda: global_step % num_steps_per_iteration == 0):
-            # Load a fine-tuning checkpoint.
-            if train_config.fine_tune_checkpoint:
-                variables_helper.ensure_checkpoint_supported(
-                    train_config.fine_tune_checkpoint, fine_tune_checkpoint_type,
-                    model_dir)
-                #train_config.run_fine_tune_checkpoint_dummy_computation
-                load_fine_tune_checkpoint(
-                    detection_model, train_config.fine_tune_checkpoint,
-                    fine_tune_checkpoint_type, fine_tune_checkpoint_version,
-                    False,
-                    train_input, unpad_groundtruth_tensors)
+    # Train the model
+    # Get the appropriate filepath (temporary or not) based on whether the worker
+    # is the chief.
+    summary_writer_filepath = get_filepath(strategy,
+                                           os.path.join(model_dir, 'train'))
+    if record_summaries:
+        summary_writer = tf.compat.v2.summary.create_file_writer(
+            summary_writer_filepath)
+    else:
+        #summary_writer = tf2.summary.create_noop_writer()
+        summary_writer = tf.summary.create_noop_writer()
 
-            ckpt = tf.compat.v2.train.Checkpoint(
-                step=global_step, model=detection_model, optimizer=optimizer)
+    with summary_writer.as_default():
+        with strategy.scope():
+            with tf.compat.v2.summary.record_if(
+                    lambda: global_step % num_steps_per_iteration == 0):
+                # Load a fine-tuning checkpoint.
+                if train_config.fine_tune_checkpoint:
+                    variables_helper.ensure_checkpoint_supported(
+                        train_config.fine_tune_checkpoint, fine_tune_checkpoint_type,
+                        model_dir)
+                    load_fine_tune_checkpoint(
+                        detection_model, train_config.fine_tune_checkpoint,
+                        fine_tune_checkpoint_type, fine_tune_checkpoint_version,
+                        train_config.run_fine_tune_checkpoint_dummy_computation,
+                        train_input, unpad_groundtruth_tensors)
 
-            manager_dir = get_filepath(strategy, model_dir)
-            if not strategy.extended.should_checkpoint:
-                checkpoint_max_to_keep = 1
-            manager = tf.compat.v2.train.CheckpointManager(
-                ckpt, manager_dir, max_to_keep=checkpoint_max_to_keep)
+                ckpt = tf.compat.v2.train.Checkpoint(
+                    step=global_step, model=detection_model, optimizer=optimizer)
 
-            # We use the following instead of manager.latest_checkpoint because
-            # manager_dir does not point to the model directory when we are running
-            # in a worker.
-            latest_checkpoint = tf.train.latest_checkpoint(model_dir)
-            ckpt.restore(latest_checkpoint)
+                manager_dir = get_filepath(strategy, model_dir)
+                if not strategy.extended.should_checkpoint:
+                    checkpoint_max_to_keep = 1
+                manager = tf.compat.v2.train.CheckpointManager(
+                    ckpt, manager_dir, max_to_keep=checkpoint_max_to_keep)
 
-            def train_step_fn(features, labels):
-                """Single train step."""
-                loss = eager_train_step(
-                    detection_model,
-                    features,
-                    labels,
-                    unpad_groundtruth_tensors,
-                    optimizer,
-                    learning_rate=learning_rate_fn(),
-                    add_regularization_loss=add_regularization_loss,
-                    clip_gradients_value=clip_gradients_value,
-                    global_step=global_step,
-                    num_replicas=strategy.num_replicas_in_sync)
+                # We use the following instead of manager.latest_checkpoint because
+                # manager_dir does not point to the model directory when we are running
+                # in a worker.
+                latest_checkpoint = tf.train.latest_checkpoint(model_dir)
+                ckpt.restore(latest_checkpoint)
 
-            def _sample_and_train(strategy, train_step_fn, data_iterator):
-                features, labels = data_iterator.next()
-                if hasattr(tf.distribute.Strategy, 'run'):
-                    per_replica_losses = strategy.run(
-                        train_step_fn, args=(features, labels))
-                else:
-                    per_replica_losses = strategy.experimental_run_v2(
-                        train_step_fn, args=(features, labels))
-                # TODO(anjalisridhar): explore if it is safe to remove the
-                # num_replicas scaling of the loss and switch this to a ReduceOp.Mean
-                return strategy.reduce(tf.distribute.ReduceOp.SUM,
-                                       per_replica_losses, axis=None)
+                def train_step_fn(features, labels):
+                    """Single train step."""
+                    loss = eager_train_step(
+                        detection_model,
+                        features,
+                        labels,
+                        unpad_groundtruth_tensors,
+                        optimizer,
+                        learning_rate=learning_rate_fn(),
+                        add_regularization_loss=add_regularization_loss,
+                        clip_gradients_value=clip_gradients_value,
+                        global_step=global_step,
+                        num_replicas=strategy.num_replicas_in_sync)
 
-            @tf.function
-            def _dist_train_step(data_iterator):
-                """A distributed train step."""
+                def _sample_and_train(strategy, train_step_fn, data_iterator):
+                    features, labels = data_iterator.next()
+                    if hasattr(tf.distribute.Strategy, 'run'):
+                        per_replica_losses = strategy.run(
+                            train_step_fn, args=(features, labels))
+                    else:
+                        per_replica_losses = strategy.experimental_run_v2(
+                            train_step_fn, args=(features, labels))
+                    # TODO(anjalisridhar): explore if it is safe to remove the
+                    # num_replicas scaling of the loss and switch this to a ReduceOp.Mean
+                    return strategy.reduce(tf.distribute.ReduceOp.SUM,
+                                        per_replica_losses, axis=None)
 
-                if num_steps_per_iteration > 1:
-                    for _ in tf.range(num_steps_per_iteration - 1):
-                        # Following suggestion on yaqs/5402607292645376
-                        with tf.name_scope(''):
-                            _sample_and_train(
-                                strategy, train_step_fn, data_iterator)
+                @tf.function
+                def _dist_train_step(data_iterator):
+                    """A distributed train step."""
 
-                return _sample_and_train(strategy, train_step_fn, data_iterator)
+                    if num_steps_per_iteration > 1:
+                        for _ in tf.range(num_steps_per_iteration - 1):
+                            # Following suggestion on yaqs/5402607292645376
+                            with tf.name_scope(''):
+                                _sample_and_train(
+                                    strategy, train_step_fn, data_iterator)
 
-            train_input_iter = iter(train_input)
+                    return _sample_and_train(strategy, train_step_fn, data_iterator)
 
-            if int(global_step.value()) == 0:
-                manager.save()
+                train_input_iter = iter(train_input)
 
-            checkpointed_step = int(global_step.value())
-            logged_step = global_step.value()
-
-            last_step_time = time.time()
-            for _ in range(global_step.value(), train_steps,
-                           num_steps_per_iteration):
-
-                loss = _dist_train_step(train_input_iter)
-
-                time_taken = time.time() - last_step_time
-                last_step_time = time.time()
-                steps_per_sec = num_steps_per_iteration * 1.0 / time_taken
-
-                tf.compat.v2.summary.scalar(
-                    'steps_per_sec', steps_per_sec, step=global_step)
-
-                steps_per_sec_list.append(steps_per_sec)
-
-                if global_step.value() - logged_step >= 100:
-                    tf.logging.info(
-                        'Step {} per-step time {:.3f}s loss={:.3f}'.format(
-                            global_step.value(), time_taken / num_steps_per_iteration,
-                            loss))
-                    logged_step = global_step.value()
-
-                if ((int(global_step.value()) - checkpointed_step) >=
-                        checkpoint_every_n):
+                if int(global_step.value()) == 0:
                     manager.save()
-                    checkpointed_step = int(global_step.value())
+
+                checkpointed_step = int(global_step.value())
+                logged_step = global_step.value()
+
+                last_step_time = time.time()
+                for _ in range(global_step.value(), train_steps,
+                            num_steps_per_iteration):
+
+                    loss = _dist_train_step(train_input_iter)
+
+                    time_taken = time.time() - last_step_time
+                    last_step_time = time.time()
+                    steps_per_sec = num_steps_per_iteration * 1.0 / time_taken
+
+                    tf.compat.v2.summary.scalar(
+                        'steps_per_sec', steps_per_sec, step=global_step)
+
+                    steps_per_sec_list.append(steps_per_sec)
+
+                    if global_step.value() - logged_step >= 100:
+                        tf.logging.info(
+                            'Step {} per-step time {:.3f}s loss={:.3f}'.format(
+                                global_step.value(), time_taken / num_steps_per_iteration,
+                                loss))
+                        logged_step = global_step.value()
+
+                    if ((int(global_step.value()) - checkpointed_step) >=
+                            checkpoint_every_n):
+                        manager.save()
+                        checkpointed_step = int(global_step.value())
+
+
+if __name__ == "__main__":
+
+    AUTO = tf.data.experimental.AUTOTUNE
+    # Original image size width=1920, height=1280
+    IMAGE_SIZE = [1280, 1920]  # [640, 640] #[192, 192]
+    # TPU can only use data from Google Cloud Storage
+    # TPU can only load data from google cloud
+    train_filenames = tf.io.gfile.glob(
+        '/DATA5T/Dataset/WaymoTFRecord/train100val20/TFRecordValBig--00000-of-00005.tfrecord')
+    display_dataset = load_dataset(train_filenames)
+    display_dataset_iter = iter(display_dataset)
+    decoded_tensors = next(display_dataset_iter)
+
+    # decoded_tensors =next(iter(display_dataset))
+    print(decoded_tensors['groundtruth_boxes'].numpy())
+    print("Image width:", decoded_tensors['width'].numpy())
+    print("Image height:", decoded_tensors['height'].numpy())
+    print("Groundtruth classes:",
+          decoded_tensors['groundtruth_classes'].numpy())
+
+    testimage = decoded_tensors['image']
+    print("Image type:", type(testimage))
+    print("Image shape:", testimage.shape)
+    testlabel = decoded_tensors['groundtruth_classes'].numpy()
+    testboundingbox = decoded_tensors['groundtruth_boxes'].numpy()
+    # show_oneimage_category(testimage, testlabel, testboundingbox, IMAGE_SIZE)
+    # cv2.imwrite('result.jpg', resultimage)
+
+    cwd = os.getcwd()
+
+    # Print the current working directory
+    print("Current working directory: {0}".format(cwd))
+
+    # Start the training, ref: https://github.com/tensorflow/models/blob/master/research/object_detection/model_main_tf2.py
+    pipeline_config_path = '/Developer/MyRepo/WaymoObjectDetection/2DObject/tfobjectdetection/tf_ssdresnet50_1024_pipeline_P100.config'
+    model_dir = '/Developer/MyRepo/mymodels/tf_ssdresnet50_output'
+    strategy = tf.compat.v2.distribute.MirroredStrategy()
+    num_train_steps = 30000
+    steps_per_sec_list = []
+    checkpoint_every_n = 1000
+
+    with strategy.scope():
+        #in: https://github.com/tensorflow/models/blob/master/research/object_detection/model_lib_v2.py
+        train_loop(
+            pipeline_config_path=pipeline_config_path,
+            model_dir=model_dir,
+            train_steps=num_train_steps,
+            use_tpu=False,
+            checkpoint_every_n=1000,
+            record_summaries=True)
 
     # with strategy.scope():
     #     #in: https://github.com/tensorflow/models/blob/master/research/object_detection/model_lib_v2.py
