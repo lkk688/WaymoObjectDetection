@@ -66,8 +66,8 @@ def loadWaymoFrames(PATH):
     return frames
 
 def loadWaymoValidationFrames(PATH):
-    validation_folders = ["validation_0007"]#,"validation_0005"]
-    #validation_folders = ["validation_0000","validation_0001","validation_0002","validation_0003","validation_0004","validation_0005","validation_0006","validation_0007"] #["validation_0007","validation_0006","validation_0005","validation_0004","validation_0003","validation_0002","validation_0001","validation_0000"]
+    #validation_folders = ["validation_0007"]#,"validation_0005"]
+    validation_folders = ["validation_0000","validation_0001","validation_0002","validation_0003","validation_0004","validation_0005","validation_0006","validation_0007"] #["validation_0007","validation_0006","validation_0005","validation_0004","validation_0003","validation_0002","validation_0001","validation_0000"]
     data_files = [path for x in validation_folders for path in glob(os.path.join(PATH, x, "*.tfrecord"))]
     print(data_files)#all TFRecord file list
     print(len(data_files))
@@ -283,18 +283,23 @@ def get_prediction(modeluse, image, device, threshold):
     #print(predlist)
     #print(pred_score)
     #print(pred_class)
+    if len(pred_score) == 0:
+        return pred_boxes, pred_class, pred_score
+
     if len(predlist)>1:#1:
         pred_t = predlist[-1] 
         pred_boxes = pred_boxes[:pred_t+1]
         pred_class = pred_class[:pred_t+1]
+        pred_score = pred_score[:pred_t+1]
     else:
         #print(pred_score)
         #print(pred_class)
-        if (len(pred_boxes)>0):
-            maxpos = pred_score.index(max(pred_score))
-            #print("max position:", maxpos)
-            pred_boxes = pred_boxes[maxpos:maxpos+1]#get the first one
-            pred_class = pred_class[maxpos:maxpos+1]#get the first one
+        #if (len(pred_boxes)>0):
+        maxpos = pred_score.index(max(pred_score))
+        #print("max position:", maxpos)
+        pred_boxes = pred_boxes[maxpos:maxpos+1]#get the first one
+        pred_class = pred_class[maxpos:maxpos+1]#get the first one
+        pred_score = pred_score[maxpos:maxpos+1]  
 #             print(pred_boxes)
 #             print(pred_class)
 #         pred_boxes = pred_boxes[0]#get the first one
@@ -302,7 +307,8 @@ def get_prediction(modeluse, image, device, threshold):
     
     #pred_boxes = [x.data.cpu().numpy() for idx, x in enumerate(pred[0]['boxes']) if pred[0]["scores"][idx] > score_threshold]
     #pred_class = [x.data.cpu().numpy() for idx, x in enumerate(pred[0]['labels']) if pred[0]["scores"][idx] > score_threshold]
-    return pred_boxes, pred_class
+    return pred_boxes, pred_class, pred_score
+
 
 INSTANCE_pb2 = {
     'Unknown':label_pb2.Label.TYPE_UNKNOWN, 'Vehicles':label_pb2.Label.TYPE_VEHICLE, 'Pedestrians':label_pb2.Label.TYPE_PEDESTRIAN, 'Cyclists':label_pb2.Label.TYPE_CYCLIST
@@ -324,10 +330,9 @@ def create_pd(frame, objmodel, device, score_threshold):
     #print(frame.timestamp_micros)
 
     #run the prediction
-    boxes, pred_cls = get_prediction(objmodel, img, device, score_threshold)
+    boxes, pred_cls, scores = get_prediction(objmodel, img, device, score_threshold)
 #     print(pred_cls)
 #     print(boxes)
-    
     boxnum=min(len(boxes),400)
     for i in range(boxnum):#patch in pred_bbox:
         patch=boxes[i]
@@ -343,7 +348,7 @@ def create_pd(frame, objmodel, device, score_threshold):
         # The frame timestamp for the prediction. See Frame::timestamp_micros in
         # dataset.proto.
         invalid_ts = frame.timestamp_micros #-1
-        o.frame_timestamp_micros = invalid_ts
+        o.frame_timestamp_micros = int(invalid_ts)
         # This is only needed for 2D detection or tracking tasks.
         # Set it to the camera name the prediction is for.
         o.camera_name = dataset_pb2.CameraName.FRONT
@@ -439,12 +444,105 @@ def generatevalidation(PATH, outputfilepath, MODEL_DIR):
     #     # Write objects to a file.
     #     f.write(objects.SerializeToString())
     # f.close()
+
+from waymo_open_dataset.protos import metrics_pb2,submission_pb2
+from waymo_open_dataset import dataset_pb2 
+from waymo_open_dataset import label_pb2    
+def generatevalidationsubmission(PATH, outputfilepath, MODEL_DIR):
+    now = datetime.datetime.now()
+    print ("In generatevalidationsubmission, current date and time : ")
+    print (now.strftime("%Y-%m-%d %H:%M:%S"))
     
+    tf.enable_eager_execution()
+    print(tf.__version__)
+    print(torch.cuda.is_available())
+    print(torch.cuda.device_count())
+    print(torch.cuda.get_device_name())
+    device = torch.device("cuda")
     
+    print("Loading Waymo validation frames...")
+    waymovalidationframes=loadWaymoValidationFrames(PATH)
+    #mywaymovaldataset = myNewWaymoDataset(PATH, waymovalidationframes, get_transform(train=False))
+    print("Total validation frames: ", len(waymovalidationframes))
+    
+    num_classes = 4 #Unknown:0, Vehicles: 1, Pedestrians: 2, Cyclists: 3, Signs (removed)
+    # get the model using our helper function
+    print("Loading previous model: " + MODEL_DIR)
+    #model = get_previous_object_detection_model(num_classes, previous_model_path)
+    model = load_previous_object_detection_model(num_classes, MODEL_DIR)
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    # move model to the right device
+    model.to(device)
+    model.eval()
+    
+    objects = metrics_pb2.Objects()
+    f = open(outputfilepath, 'wb') #waymovalidationframes, waymotestframes
+    outputallframes=waymovalidationframes
+    print("Total frames: ", len(outputallframes))
+    #step=5
+    for i in range(len(outputallframes)): #len(outputallframes)
+        if i%10 ==0:
+            print("current frame: ", i)
+        frame = outputallframes[i]
+        image = tf.image.decode_jpeg(frame.images[0].image).numpy()#front camera image
+        img = Image.fromarray(image)
+        boxes, pred_cls, scores = get_prediction(model, img, device, score_threshold)
+        total_boxes=len(boxes)
+        if len(boxes) == 0:
+            continue
+        for i in range(total_boxes):#patch in pred_bbox:
+            label=pred_cls[i]
+            bbox=boxes[i]
+            score = scores[i]
+            o = metrics_pb2.Object()
+            o.context_name = frame.context.name
+            o.frame_timestamp_micros = int(frame.timestamp_micros)
+            o.camera_name = dataset_pb2.CameraName.FRONT
+            o.score = score
+            
+            # Populating box and score.
+            box = label_pb2.Label.Box()
+            box.length = bbox[1][0] - bbox[0][0]
+            box.width = bbox[1][1] - bbox[0][1]
+            box.center_x = bbox[0][0] + box.length * 0.5
+            box.center_y = bbox[0][1] + box.width * 0.5
+
+            o.object.box.CopyFrom(box)
+            o.object.detection_difficulty_level = label_pb2.Label.LEVEL_1
+            o.object.num_lidar_points_in_box = 100
+            o.object.type = INSTANCE_pb2[label]# INSTANCE_CATEGORY_NAMES.index(label) #INSTANCE_pb2[label]
+            print(f'Object type label: {label}, {INSTANCE_pb2[label]}, {INSTANCE_CATEGORY_NAMES.index(label)}')
+            assert o.object.type != label_pb2.Label.TYPE_UNKNOWN
+            objects.objects.append(o)
+    
+    submission = submission_pb2.Submission()
+    submission.task = submission_pb2.Submission.DETECTION_2D 
+    submission.account_name = 'kaikai.liu@sjsu.edu'
+    submission.authors.append('Kaikai Liu')
+    submission.affiliation = 'None'
+    submission.unique_method_name = 'torchvisionfaster'
+    submission.description = 'none'
+    submission.method_link = "empty method"
+    submission.sensor_type = submission_pb2.Submission.CAMERA_ALL
+    submission.number_past_frames_exclude_current = 0
+    submission.number_future_frames_exclude_current = 0
+    submission.inference_results.CopyFrom(objects)
+    f = open(outputfilepath, 'wb')
+    #f = open("./drive/My Drive/waymo_submission/waymo35.bin", 'wb')
+    f.write(submission.SerializeToString())
+    f.close()
+    
+    now = datetime.datetime.now()
+    print ("Finished validation, current date and time : ")
+    print (now.strftime("%Y-%m-%d %H:%M:%S"))
+
 if __name__ == "__main__":
     PATH='/data/cmpe295-liu/Waymo'
     EPOCHS=40
     previous_model_path = '/home/010796032/Waymo/saved_models_py4/model_27.pth'
     #previous_model_path = './saved_models_py4/model_14.pth'
-    outputfilepath='/home/010796032/MyRepo/submissionoutput/py_saved_models_py4_full14_val2.bin' #'/tmp/your_preds.bin'
-    generatevalidation(PATH, outputfilepath, previous_model_path)
+    #outputfilepath='/home/010796032/MyRepo/submissionoutput/py_saved_models_py4_full14_val2.bin' #'/tmp/your_preds.bin'
+    outputfilepath='/home/010796032/MyRepo/submissionoutput/torchvision_model27_valnewfull.bin' #'/tmp/your_preds.bin'
+   
+    #generatevalidation(PATH, outputfilepath, previous_model_path)
+    generatevalidationsubmission(PATH, outputfilepath, previous_model_path)
