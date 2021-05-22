@@ -171,7 +171,7 @@ if __name__ == "__main__":
     #cfg.MODEL.WEIGHTS = os.path.join('/home/010796032/PytorchWork', "fasterrcnn_x101_fpn_model_final_68b088.pkl")#using the local 
     #cfg.MODEL.WEIGHTS = os.path.join('/home/010796032/PytorchWork/output', "model_0079999.pth")
     #cfg.MODEL.WEIGHTS = os.path.join('/home/010796032/PytorchWork/output_waymo', "model_0179999.pth")
-    cfg.MODEL.WEIGHTS = os.path.join('/home/010796032/MyRepo/Detectron2output/', "model_0619999.pth")#"model_0439999.pth")
+    cfg.MODEL.WEIGHTS = os.path.join('/home/010796032/MyRepo/Detectron2output/', " model_0709999.pth")#"model_0439999.pth")
     cfg.SOLVER.IMS_PER_BATCH = 2 #4
     cfg.SOLVER.LR_SCHEDULER_NAME='WarmupCosineLR'
     cfg.SOLVER.BASE_LR = 0.00025  # pick a good LR

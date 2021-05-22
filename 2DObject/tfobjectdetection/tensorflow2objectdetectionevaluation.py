@@ -419,6 +419,10 @@ if __name__ == "__main__":
     model_dir = '/Developer/MyRepo/mymodels/tfssdresnet50_1024_ckpt100k/evaluation' #tf_ssdresnet50_output
     # If ''`checkpoint_dir` is provided, this binary operates in eval-only mode, ''writing resulting metrics to `model_dir`.'
     checkpoint_dir = '/Developer/MyRepo/mymodels/tfssdresnet50_1024_ckpt100k/checkpoint/'#tf_ssdresnet50_output'
+    
+    model_dir = '/Developer/MyRepo/mymodels/tf_ssdresnet50_output/evaluation2' #
+    checkpoint_dir = '/Developer/MyRepo/mymodels/tf_ssdresnet50_output/'#tf_ssdresnet50_output'
+    
     strategy = tf.compat.v2.distribute.MirroredStrategy()
     # , 'Number of seconds to wait for an''evaluation checkpoint before exiting.'
     eval_timeout = 3600
