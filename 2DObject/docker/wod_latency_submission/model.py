@@ -1,12 +1,13 @@
-"""Module to load and run an EfficientDet model."""
+"""Module to load and run an Tensorflow model."""
 import os
+from . import TF2Detector
 
 import numpy as np
 from object_detection.builders import model_builder
 from object_detection.utils import config_util
 import tensorflow as tf
 
-
+# Global variables that hold the models
 model = None
 DATA_FIELDS = ['FRONT_IMAGE']
 
