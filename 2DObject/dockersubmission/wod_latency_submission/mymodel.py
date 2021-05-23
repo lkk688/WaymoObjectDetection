@@ -88,8 +88,8 @@ def run_model(**kwargs):
     FRONT_IMAGE=kwargs[frontimagekey]
     print(FRONT_IMAGE.size)
     imageshape=FRONT_IMAGE.shape
-    im_width=imageshape[1]#2720#800
-    im_height=imageshape[0]#1530#600
+    im_width=imageshape[1]#1920
+    im_height=imageshape[0]#1280
     input_tensor = np.expand_dims(FRONT_IMAGE, 0)
     detections = model(input_tensor)
 
@@ -102,7 +102,7 @@ def run_model(**kwargs):
     #Post filter based on threshold
     pred_boxes, pred_class, pred_score = postfilter(pred_boxes, pred_class, pred_score, FILTERthreshold)
     if len(pred_class)>0:
-        pred_class = [i-1 for i in list(pred_class)] # index starts with 1, 0 is the background in the tensorflow
+        #pred_class = [i-1 for i in list(pred_class)] # index starts with 1, 0 is the background in the tensorflow
         #normalized [ymin, xmin, ymax, xmax] to (center_x, center_y, width, height) in image size
         #pred_boxes = [[(i[1]*im_width, i[0]*im_height), (i[3]*im_width, i[2]*im_height)] for i in list(pred_boxes)] # Bounding boxes
         boxes = np.zeros_like(pred_boxes)
@@ -115,11 +115,18 @@ def run_model(**kwargs):
         # boxes[:, 2] = (pred_boxes[:, 3] - pred_boxes[:, 1]) * im_width
         # boxes[:, 3] = (pred_boxes[:, 2] - pred_boxes[:, 0]) * im_height
 
-    return {
-        'boxes': boxes,
-        'scores': pred_score,
-        'classes': pred_class,
-    }
+        return {
+            'boxes': boxes,
+            'scores': pred_score,
+            'classes': pred_class,
+        }
+    else:#empty
+        return {
+            'boxes': pred_boxes,
+            'scores': pred_score,
+            'classes': pred_class,
+        }
+
     # inp_tensor = tf.convert_to_tensor(
     #     np.expand_dims(FRONT_IMAGE, 0), dtype=tf.float32)
     # image, shapes = model.preprocess(inp_tensor)

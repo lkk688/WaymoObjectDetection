@@ -96,10 +96,10 @@ def convert_frame_to_dict_cameras(frame):
 
 
 def evaluateallframescreatesubmission(frames, outputsubmissionfilepath, outputfile="./output_video1.mp4"):
-    array_len = len(frames)
+    array_len = len(frames) #4931 frames for validation_0000
     # 20, 200 frames in one file, downsample by 10
     print("Frames lenth:", array_len)
-    print("Final_array type:", type(frames))  # numpy.ndarray
+    print("Final_array type:", type(frames))  # class 'list'
 
     objects = metrics_pb2.Objects()  # submission objects
 
@@ -151,6 +151,8 @@ def evaluateallframescreatesubmission(frames, outputsubmissionfilepath, outputfi
                                                                      max_boxes_to_draw=200,
                                                                      min_score_thresh=Threshold,
                                                                      agnostic_mode=False)
+        display_str=f'FPS: {fps.fps()}, context_name: {context_name}, timestamp_micros: {frame_timestamp_micros}'
+        visualization_util.draw_text_on_image(image_np_with_detections, 0, 0, display_str, color='black')
         #visualization_util.save_image_array_as_png(image_np_with_detections, outputfile)
 
         name = './Test_data/frame' + str(frameid) + '.jpg'
@@ -198,7 +200,8 @@ def createsubmisionobject(objects, boxes, pred_cls, scores, context_name, frame_
     total_boxes = len(boxes)
     for i in range(total_boxes):  # patch in pred_bbox:
         label = pred_cls[i]
-        bbox = boxes[i]
+        #(center_x, center_y, width, height) in image size
+        bbox = boxes[i] #[1246.5217, 750.64905, 113.49747, 103.9653]
         score = scores[i]
         o = metrics_pb2.Object()
         o.context_name = context_name  # frame.context.name
@@ -209,18 +212,22 @@ def createsubmisionobject(objects, boxes, pred_cls, scores, context_name, frame_
 
         # Populating box and score.
         box = label_pb2.Label.Box()
-        box.length = bbox[1][0] - bbox[0][0]
-        box.width = bbox[1][1] - bbox[0][1]
-        box.center_x = bbox[0][0] + box.length * 0.5
-        box.center_y = bbox[0][1] + box.width * 0.5
+        box.center_x = bbox[0]
+        box.center_y = bbox[1]
+        box.width=bbox[2]
+        box.length=bbox[3]
+        # box.length = bbox[1][0] - bbox[0][0]
+        # box.width = bbox[1][1] - bbox[0][1]
+        # box.center_x = bbox[0][0] + box.length * 0.5
+        # box.center_y = bbox[0][1] + box.width * 0.5
 
         o.object.box.CopyFrom(box)
         o.object.detection_difficulty_level = label_pb2.Label.LEVEL_1
         o.object.num_lidar_points_in_box = 100
         # INSTANCE_CATEGORY_NAMES.index(label) #INSTANCE_pb2[label]
-        o.object.type = INSTANCE_pb2[label]
-        print(
-            f'Object type label: {label}, {INSTANCE_pb2[label]}, {INSTANCE_CATEGORY_NAMES.index(label)}')
+        o.object.type = label #INSTANCE_pb2[label]
+        # print(
+        #     f'Object type label: {label}, {INSTANCE_pb2[label]}, {INSTANCE_CATEGORY_NAMES.index(label)}')
         assert o.object.type != label_pb2.Label.TYPE_UNKNOWN
         objects.objects.append(o)
         # return o
@@ -253,7 +260,7 @@ def loadWaymoValidationFrames(PATH):
 
 if __name__ == "__main__":
     print("Loading Waymo validation frames...")
-    PATH = ""
+    PATH = "/DATA5T/Dataset/WaymoDataset/"
     waymovalidationframes = loadWaymoValidationFrames(PATH)
     #mywaymovaldataset = myNewWaymoDataset(PATH, waymovalidationframes, get_transform(train=False))
     print("Total validation frames: ", len(waymovalidationframes))
