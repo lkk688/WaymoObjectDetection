@@ -1,11 +1,23 @@
-"""Module to load and run an Tensorflow model."""
+import torch
 import os
-from . import TF2Detector
-
 import numpy as np
-from object_detection.builders import model_builder
-from object_detection.utils import config_util
-import tensorflow as tf
+import torchvision
+# Check MMDetection installation
+import mmdet
+print(mmdet.__version__)
+
+# Check mmcv installation
+from mmcv.ops import get_compiling_cuda_version, get_compiler_version
+print(get_compiling_cuda_version())
+print(get_compiler_version())
+
+from mmcv import Config
+from mmdet.apis import inference_detector, init_detector, show_result_pyplot
+from mmdet.models import build_detector
+from mmcv.runner import load_checkpoint
+from mmdet.core import get_classes
+import mmcv
+import numpy as np
 
 # Global variables that hold the models
 model = None
@@ -13,25 +25,31 @@ DATA_FIELDS = ['FRONT_IMAGE']
 FILTERthreshold=0.2
 
 def initialize_model():
-    """Initialize the global model variable to the pretrained EfficientDet.
-    This assumes that the EfficientDet model has already been downloaded to a
-    specific path, as done in the Dockerfile for this example.
-    """
-    #model_dir = '/Developer/MyRepo/mymodels/tfssdresnet50_1024_ckpt100k/saved_model'
-    model_dir = '/Developer/MyRepo/mymodels/tf_ssdresnet50_output/exported130/saved_model'
-    #load saved model
+    Basemmdetection='/Developer/3DObject/mmdetection/'
+    config = Basemmdetection+'configs/faster_rcnn/faster_rcnn_r101_fpn_2x_coco.py'
+    # Setup a checkpoint file to load
+    checkpoint = '/Developer/3DObject/mymmdetection/waymococo_fasterrcnnr101train/epoch_60.pth'
+    device='cuda:0'
     global model
-    model = tf.saved_model.load(model_dir)
-    print(model.signatures['serving_default'].inputs)
-    print(model.signatures['serving_default'].output_shapes)
-
-    # configs = config_util.get_configs_from_pipeline_file(
-    #     os.path.join(model_dir, 'pipeline.config'))
-    # model_config = configs['model']
-    # global model
-    # model = model_builder.build(model_config=model_config, is_training=False)
-    # ckpt = tf.train.Checkpoint(model=model)
-    # ckpt.restore(os.path.join(model_dir, 'checkpoint', 'ckpt-0'))
+    if isinstance(config, str):
+        config = mmcv.Config.fromfile(config)
+    elif not isinstance(config, mmcv.Config):
+        raise TypeError('config must be a filename or Config object, '
+                        f'but got {type(config)}')
+    config.model.pretrained = None
+    config.model.train_cfg = None
+    model = build_detector(config.model, test_cfg=config.get('test_cfg'))
+    if checkpoint is not None:
+        map_loc = 'cpu' if device == 'cpu' else None
+        checkpoint = load_checkpoint(model, checkpoint, map_location=map_loc)
+        if 'CLASSES' in checkpoint.get('meta', {}):
+            model.CLASSES = checkpoint['meta']['CLASSES']
+        else:
+            model.CLASSES = get_classes('coco')
+    model.cfg = config  # save the config in the model for convenience
+    model.to(device)
+    model.eval()
+    
 
 
 def translate_label_to_wod(label):
@@ -128,45 +146,3 @@ def run_model(**kwargs):
             'classes': pred_class,
         }
 
-    # inp_tensor = tf.convert_to_tensor(
-    #     np.expand_dims(FRONT_IMAGE, 0), dtype=tf.float32)
-    # image, shapes = model.preprocess(inp_tensor)
-    # pred_dict = model.predict(image, shapes)
-    # detections = model.postprocess(pred_dict, shapes)
-    # corners = detections['detection_boxes'][0, ...].numpy()
-    # scores = detections['detection_scores'][0, ...].numpy()
-    # coco_classes = detections['detection_classes'][0, ...].numpy()
-    # coco_classes = coco_classes.astype(np.uint8)
-
-    # # Convert the classes from COCO classes to WOD classes, and only keep
-    # # detections that belong to a WOD class.
-    # coco_classes = [i+1 for i in list(coco_classes)]
-    # wod_classes = np.vectorize(translate_label_to_wod)(coco_classes)
-    # corners = corners[wod_classes > 0]
-    # scores = scores[wod_classes > 0]
-    # classes = wod_classes[wod_classes > 0]
-    # # Note: the boxes returned by the TF OD API's pretrained models returns boxes
-    # # in the format (ymin, xmin, ymax, xmax), normalized to [0, 1]. Thus, this
-    # # function needs to convert them to the format expected by WOD, namely
-    # # (center_x, center_y, width, height) in pixels.
-    # boxes = np.zeros_like(corners)
-    # # boxes[:, 0] = (corners[:, 3] + corners[:, 1]) * FRONT_IMAGE.shape[0] / 2.0 #(1280, 1920, 3)
-    # # boxes[:, 1] = (corners[:, 2] + corners[:, 0]) * FRONT_IMAGE.shape[1] / 2.0
-    # # boxes[:, 2] = (corners[:, 3] - corners[:, 1]) * FRONT_IMAGE.shape[0] #width
-    # # boxes[:, 3] = (corners[:, 2] - corners[:, 0]) * FRONT_IMAGE.shape[1] # height
-
-    # height=FRONT_IMAGE.shape[0]
-    # width=FRONT_IMAGE.shape[1]
-    # boxes[:, 0] = (corners[:, 3] + corners[:, 1]) * width / 2.0 #center_x
-    # boxes[:, 1] = (corners[:, 2] + corners[:, 0]) * height / 2.0
-    # boxes[:, 2] = (corners[:, 3] - corners[:, 1]) * width #width
-    # boxes[:, 3] = (corners[:, 2] - corners[:, 0]) * height # height
-
-    # return {
-    #     'boxes': boxes,
-    #     'scores': scores,
-    #     'classes': classes,
-    # }
-# BEGIN-INTERNAL
-# pylint: disable=invalid-name
-# END-INTERNAL

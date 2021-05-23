@@ -124,8 +124,9 @@ def draw_bounding_box_on_image_array(image,
     np.copyto(image, np.array(image_pil))
 
 def draw_text_on_image(image, xpos, ypos, display_str, color='black'):
-    draw = ImageDraw.Draw(image)
-    im_width, im_height = image.size
+    image_pil = Image.fromarray(np.uint8(image)).convert('RGB')
+    draw = ImageDraw.Draw(image_pil)
+    im_width, im_height = image_pil.size
     try:
         font = ImageFont.truetype('arial.ttf', 24)
     except IOError:
@@ -137,6 +138,7 @@ def draw_text_on_image(image, xpos, ypos, display_str, color='black'):
             display_str,
             fill='black',
             font=font)
+    np.copyto(image, np.array(image_pil))
 
 def draw_bounding_box_on_image(image,
                                ymin,
@@ -275,7 +277,7 @@ def visualize_boxes_and_labels_on_image_array(
     """
     # Create a display string (and color) for every box location, group any boxes
     # that correspond to the same location.
-    if not boxes:
+    if len(boxes)<1:
         print("No boxes")
         return image
 

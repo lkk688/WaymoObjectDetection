@@ -19,7 +19,7 @@ class FLAGS:
     pipeline_config_path = '/Developer/MyRepo/WaymoObjectDetection/2DObject/tfobjectdetection/tf_ssdresnet50_1024_pipeline_P100.config'
     input_type = 'image_tensor'
     trained_checkpoint_dir = '/Developer/MyRepo/mymodels/tf_ssdresnet50_output'
-    output_directory='/Developer/MyRepo/mymodels/tf_ssdresnet50_output/exported'
+    output_directory='/Developer/MyRepo/mymodels/tf_ssdresnet50_output/exported130'
     use_side_inputs=False
     side_input_shapes=''
     side_input_types=''

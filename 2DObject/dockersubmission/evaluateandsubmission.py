@@ -151,7 +151,7 @@ def evaluateallframescreatesubmission(frames, outputsubmissionfilepath, outputfi
                                                                      max_boxes_to_draw=200,
                                                                      min_score_thresh=Threshold,
                                                                      agnostic_mode=False)
-        display_str=f'FPS: {fps.fps()}, context_name: {context_name}, timestamp_micros: {frame_timestamp_micros}'
+        display_str=f'Inference time: {str(elapsed_time*1000)}ms, context_name: {context_name}, timestamp_micros: {frame_timestamp_micros}'
         visualization_util.draw_text_on_image(image_np_with_detections, 0, 0, display_str, color='black')
         #visualization_util.save_image_array_as_png(image_np_with_detections, outputfile)
 
@@ -159,7 +159,10 @@ def evaluateallframescreatesubmission(frames, outputsubmissionfilepath, outputfi
         #print ('Creating\...' + name)
         # cv2.imwrite(name, image_np_with_detections) #write to image folder
         fps.update()
-        out.write(image_np_with_detections)
+        #out.write(image_np_with_detections)
+        out.write(cv2.cvtColor(image_np_with_detections, cv2.COLOR_RGB2BGR))
+        #cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        
 
     # stop the timer and display FPS information
     fps.stop()
@@ -265,6 +268,6 @@ if __name__ == "__main__":
     #mywaymovaldataset = myNewWaymoDataset(PATH, waymovalidationframes, get_transform(train=False))
     print("Total validation frames: ", len(waymovalidationframes))
 
-    outputfile = "./output/output_video_val0.mp4"
-    outputsubmissionfilepath = './output/tf_val0.bin'
+    outputfile = "./output/output_video_tf130kval0.mp4"
+    outputsubmissionfilepath = './output/tf130k_val0.bin'
     evaluateallframescreatesubmission(waymovalidationframes,outputsubmissionfilepath, outputfile)
