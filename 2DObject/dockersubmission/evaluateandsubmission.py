@@ -106,7 +106,7 @@ def evaluateallframescreatesubmission(frames, outputsubmissionfilepath, outputfi
     frame_width = 1920
     frame_height = 1280
     out = cv2.VideoWriter(outputfile, cv2.VideoWriter_fourcc(
-        'M', 'P', '4', 'V'), 2, (frame_width, frame_height))
+        'M', 'P', '4', 'V'), 5, (frame_width, frame_height))
     fps = FPS().start()
 
     wod_latency_submission.initialize_model()
@@ -194,6 +194,10 @@ def evaluateallframescreatesubmission(frames, outputsubmissionfilepath, outputfi
 INSTANCE_pb2 = {
     'Unknown': label_pb2.Label.TYPE_UNKNOWN, 'Vehicles': label_pb2.Label.TYPE_VEHICLE, 'Pedestrians': label_pb2.Label.TYPE_PEDESTRIAN, 'Cyclists': label_pb2.Label.TYPE_CYCLIST
 }
+INSTANCEindex_pb2 = {
+    0: label_pb2.Label.TYPE_UNKNOWN, 1: label_pb2.Label.TYPE_VEHICLE, 2: label_pb2.Label.TYPE_PEDESTRIAN,  3: label_pb2.Label.TYPE_SIGN, 4: label_pb2.Label.TYPE_CYCLIST
+}
+
 INSTANCE_CATEGORY_NAMES = [
     'Unknown', 'Vehicles', 'Pedestrians', 'Cyclists'
 ]
@@ -228,7 +232,7 @@ def createsubmisionobject(objects, boxes, pred_cls, scores, context_name, frame_
         o.object.detection_difficulty_level = label_pb2.Label.LEVEL_1
         o.object.num_lidar_points_in_box = 100
         # INSTANCE_CATEGORY_NAMES.index(label) #INSTANCE_pb2[label]
-        o.object.type = label #INSTANCE_pb2[label]
+        o.object.type = INSTANCEindex_pb2[label] #INSTANCE_pb2[label]
         # print(
         #     f'Object type label: {label}, {INSTANCE_pb2[label]}, {INSTANCE_CATEGORY_NAMES.index(label)}')
         assert o.object.type != label_pb2.Label.TYPE_UNKNOWN
@@ -237,9 +241,9 @@ def createsubmisionobject(objects, boxes, pred_cls, scores, context_name, frame_
 
 
 def loadWaymoValidationFrames(PATH):
-    validation_folders = ["validation_0000"]#,"validation_0005"]
+    #validation_folders = ["validation_0000"]#,"validation_0005"]
     # ["validation_0007","validation_0006","validation_0005","validation_0004","validation_0003","validation_0002","validation_0001","validation_0000"]
-    #validation_folders = ["validation_0000", "validation_0001", "validation_0002","validation_0003", "validation_0004", "validation_0005", "validation_0006", "validation_0007"]
+    validation_folders = ["validation_0000", "validation_0001", "validation_0002","validation_0003", "validation_0004", "validation_0005", "validation_0006", "validation_0007"]
     data_files = [path for x in validation_folders for path in glob(
         os.path.join(PATH, x, "*.tfrecord"))]
     print(data_files)  # all TFRecord file list
@@ -270,4 +274,7 @@ if __name__ == "__main__":
 
     outputfile = "./output/output_video_tf130kval0.mp4"
     outputsubmissionfilepath = './output/tf130k_val0.bin'
+
+    outputfile = "./output/output_video_mm60valall.mp4"
+    outputsubmissionfilepath = './output/mm60_valall.bin'
     evaluateallframescreatesubmission(waymovalidationframes,outputsubmissionfilepath, outputfile)

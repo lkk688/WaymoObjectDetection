@@ -5,8 +5,14 @@
 # run_model = model.run_model
 # DATA_FIELDS = model.DATA_FIELDS
 
-from . import mymodel
+# from . import mymodel
 
-initialize_model = mymodel.initialize_model
-run_model = mymodel.run_model
-DATA_FIELDS = mymodel.DATA_FIELDS
+# initialize_model = mymodel.initialize_model
+# run_model = mymodel.run_model
+# DATA_FIELDS = mymodel.DATA_FIELDS
+
+from . import mmdetmodel
+
+initialize_model = mmdetmodel.initialize_model
+run_model = mmdetmodel.run_model
+DATA_FIELDS = mmdetmodel.DATA_FIELDS

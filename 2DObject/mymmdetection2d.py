@@ -26,7 +26,7 @@ import mmcv
 import numpy as np
 
 from PIL import Image
-
+classes=('vehicle', 'pedestrian', 'sign', 'cyclist')
 def mymm2d_init_detector(config, checkpoint=None, device='cuda:0'):
     if isinstance(config, str):
         config = mmcv.Config.fromfile(config)
@@ -35,6 +35,7 @@ def mymm2d_init_detector(config, checkpoint=None, device='cuda:0'):
                         f'but got {type(config)}')
     config.model.pretrained = None
     config.model.train_cfg = None
+    config.model.roi_head.bbox_head.num_classes = len(classes)
     model = build_detector(config.model, test_cfg=config.get('test_cfg'))
     if checkpoint is not None:
         map_loc = 'cpu' if device == 'cpu' else None
@@ -172,5 +173,5 @@ if __name__ == "__main__":
 
     Basemmdetection='/Developer/3DObject/mmdetection/'
     config = Basemmdetection+'configs/faster_rcnn/faster_rcnn_r101_fpn_2x_coco.py'
-    #checkpoint = '/Developer/3DObject/mymmdetection/waymococo_fasterrcnnr101train/epoch_60.pth'
+    checkpoint = '/Developer/3DObject/mymmdetection/waymococo_fasterrcnnr101train/epoch_60.pth'
     testinferencedetector(config, checkpoint)
