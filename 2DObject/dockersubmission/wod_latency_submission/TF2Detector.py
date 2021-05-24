@@ -98,7 +98,7 @@ class MyTF2Detector(object):
         #[0] means get the first batch, only one batch, 
         pred_boxes = detections['detection_boxes'][0].numpy() #xyxy type [0.26331702, 0.20630795, 0.3134004 , 0.2257505 ], [ymin, xmin, ymax, xmax]
         #print(boxes)
-        pred_class = detections['detection_classes'][0].numpy().astype(np.int32)
+        pred_class = detections['detection_classes'][0].numpy().astype(np.uint8)#.astype(np.int32)
         #print(classes)
         pred_score = detections['detection_scores'][0].numpy() #decreasing order
         
@@ -107,7 +107,20 @@ class MyTF2Detector(object):
         if len(pred_class)>0:
             pred_class = [i-1 for i in list(pred_class)] # index starts with 1, 0 is the background in the tensorflow
             #normalized [ymin, xmin, ymax, xmax] to [ (xmin, ymin), (xmax, ymax)] in image size
-            pred_boxes = [[(i[1]*im_width, i[0]*im_height), (i[3]*im_width, i[2]*im_height)] for i in list(pred_boxes)] # Bounding boxes
+            #pred_boxes = [[(i[1]*im_width, i[0]*im_height), (i[3]*im_width, i[2]*im_height)] for i in list(pred_boxes)] # Bounding boxes
+            boxes = np.zeros_like(pred_boxes)
+            boxes[:, 0] = (pred_boxes[:, 3] + pred_boxes[:, 1]) * im_width / 2.0
+            boxes[:, 1] = (pred_boxes[:, 2] + pred_boxes[:, 0]) * im_height / 2.0
+            boxes[:, 2] = (pred_boxes[:, 3] - pred_boxes[:, 1]) * im_width
+            boxes[:, 3] = (pred_boxes[:, 2] - pred_boxes[:, 0]) * im_height
+
+            #pred_boxes = [[(i[1]*im_width, i[0]*im_height), (i[3]*im_width, i[2]*im_height)] for i in list(pred_boxes)] # Bounding boxes in # (center_x, center_y, width, height) in pixels.
+        resultdict= {
+            'boxes': boxes,
+            'scores': pred_score,
+            'classes': pred_class,
+        }
+        return resultdict
         
 
         # #predlist=[scores.index(x) for x in scores if x > self.threshold] # Get list of index with score greater than threshold.
@@ -134,6 +147,6 @@ class MyTF2Detector(object):
         #     #[ (xmin, ymin), (xmax, ymax)]
         #     pred_boxes = [[(i[1]*im_width, i[0]*im_height), (i[3]*im_width, i[2]*im_height)] for i in list(pred_boxes)] # Bounding boxes
         
-        return pred_boxes, pred_class, pred_score
+        #return pred_boxes, pred_class, pred_score
 
 #def postprocess()

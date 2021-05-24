@@ -17,7 +17,7 @@ def initialize_model():
     This assumes that the EfficientDet model has already been downloaded to a
     specific path, as done in the Dockerfile for this example.
     """
-    model_dir = '/models/research/object_detection/test_data/efficientdet_d5_coco17_tpu-32'
+    model_dir = '/Developer/MyRepo/mymodels/efficientdet_d5_coco17_tpu-32'
     configs = config_util.get_configs_from_pipeline_file(
         os.path.join(model_dir, 'pipeline.config'))
     model_config = configs['model']
@@ -70,20 +70,30 @@ def run_model(FRONT_IMAGE):
 
     # Convert the classes from COCO classes to WOD classes, and only keep
     # detections that belong to a WOD class.
+    coco_classes = [i+1 for i in list(coco_classes)]
     wod_classes = np.vectorize(translate_label_to_wod)(coco_classes)
     corners = corners[wod_classes > 0]
     scores = scores[wod_classes > 0]
     classes = wod_classes[wod_classes > 0]
+
+    
 
     # Note: the boxes returned by the TF OD API's pretrained models returns boxes
     # in the format (ymin, xmin, ymax, xmax), normalized to [0, 1]. Thus, this
     # function needs to convert them to the format expected by WOD, namely
     # (center_x, center_y, width, height) in pixels.
     boxes = np.zeros_like(corners)
-    boxes[:, 0] = (corners[:, 3] + corners[:, 1]) * FRONT_IMAGE.shape[0] / 2.0
-    boxes[:, 1] = (corners[:, 2] + corners[:, 0]) * FRONT_IMAGE.shape[1] / 2.0
-    boxes[:, 2] = (corners[:, 3] - corners[:, 1]) * FRONT_IMAGE.shape[0]
-    boxes[:, 3] = (corners[:, 2] - corners[:, 0]) * FRONT_IMAGE.shape[1]
+    # boxes[:, 0] = (corners[:, 3] + corners[:, 1]) * FRONT_IMAGE.shape[0] / 2.0 #(1280, 1920, 3)
+    # boxes[:, 1] = (corners[:, 2] + corners[:, 0]) * FRONT_IMAGE.shape[1] / 2.0
+    # boxes[:, 2] = (corners[:, 3] - corners[:, 1]) * FRONT_IMAGE.shape[0] #width
+    # boxes[:, 3] = (corners[:, 2] - corners[:, 0]) * FRONT_IMAGE.shape[1] # height
+
+    height=FRONT_IMAGE.shape[0]
+    width=FRONT_IMAGE.shape[1]
+    boxes[:, 0] = (corners[:, 3] + corners[:, 1]) * width / 2.0 #center_x
+    boxes[:, 1] = (corners[:, 2] + corners[:, 0]) * height / 2.0
+    boxes[:, 2] = (corners[:, 3] - corners[:, 1]) * width #width
+    boxes[:, 3] = (corners[:, 2] - corners[:, 0]) * height # height
 
     return {
         'boxes': boxes,

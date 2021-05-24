@@ -7,7 +7,9 @@ import sys
 import time
 import os
 from object_detection import model_lib_v2
-import tensorflow.compat.v2 as tf
+#import tensorflow.compat.v2 as tf
+import tensorflow.compat.v1 as tf
+import tensorflow.compat.v2 as tf2
 from absl import flags
 from object_detection.builders import model_builder
 from object_detection.utils import visualization_utils as viz_utils
@@ -627,10 +629,14 @@ if __name__ == "__main__":
     # Start the training, ref: https://github.com/tensorflow/models/blob/master/research/object_detection/model_main_tf2.py
     pipeline_config_path = '/Developer/MyRepo/WaymoObjectDetection/2DObject/tfobjectdetection/tf_ssdresnet50_1024_pipeline_P100.config'
     model_dir = '/Developer/MyRepo/mymodels/tf_ssdresnet50_output'
-    strategy = tf.compat.v2.distribute.MirroredStrategy()
-    num_train_steps = 60000
+    
+    num_train_steps = 150000
     steps_per_sec_list = []
     checkpoint_every_n=1000
+
+    tf.config.set_soft_device_placement(True)
+    strategy = tf.compat.v2.distribute.MirroredStrategy()
+
 
     with strategy.scope():
         #in: https://github.com/tensorflow/models/blob/master/research/object_detection/model_lib_v2.py

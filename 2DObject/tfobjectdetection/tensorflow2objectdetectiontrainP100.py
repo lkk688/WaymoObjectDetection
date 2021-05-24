@@ -830,7 +830,7 @@ if __name__ == "__main__":
     pipeline_config_path = '/Developer/MyRepo/WaymoObjectDetection/2DObject/tfobjectdetection/tf_ssdresnet50_1024_pipeline_P100.config'
     model_dir = '/Developer/MyRepo/mymodels/tf_ssdresnet50_output'
     strategy = tf.compat.v2.distribute.MirroredStrategy()
-    num_train_steps = 30000
+    num_train_steps = 130000
     steps_per_sec_list = []
     checkpoint_every_n = 1000
 
