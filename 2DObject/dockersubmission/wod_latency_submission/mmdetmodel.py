@@ -29,7 +29,9 @@ def initialize_model():
     Basemmdetection='/Developer/3DObject/mmdetection/'
     config = Basemmdetection+'configs/faster_rcnn/faster_rcnn_r101_fpn_2x_coco.py'
     # Setup a checkpoint file to load
-    checkpoint = '/Developer/3DObject/mymmdetection/waymococo_fasterrcnnr101train/epoch_60.pth'
+    #checkpoint = '/Developer/3DObject/mymmdetection/waymococo_fasterrcnnr101train/epoch_60.pth'
+    
+    checkpoint = '/Developer/MyRepo/mymodels/mmmodels/HPCwaymococo_fasterrcnnr101train/epoch_25.pth'
     device='cuda:0'
     global model
     

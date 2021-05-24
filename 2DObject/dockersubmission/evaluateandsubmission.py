@@ -18,6 +18,7 @@ from imutils.video import FPS
 import imutils
 import cv2
 import datetime
+import pickle
 
 category_index = {1: {'id': 1, 'name': 'VEHICLE'},
                   2: {'id': 2, 'name': 'PEDESTRIAN'},
@@ -76,9 +77,9 @@ def convert_frame_to_dict_cameras(frame):
         #     im.camera_readout_done_time)
 
     # Save the intrinsics, 4x4 extrinsic matrix, width, and height of each camera.
-    for c in frame.context.camera_calibrations:
-        cam_name_str = dataset_pb2.CameraName.Name.Name(c.name)
-        print(f'Camera name: {cam_name_str}, width: {c.width}, height: {c.height}')
+    # for c in frame.context.camera_calibrations:
+    #     cam_name_str = dataset_pb2.CameraName.Name.Name(c.name)
+    #     print(f'Camera name: {cam_name_str}, width: {c.width}, height: {c.height}')
         # data_dict[f'{cam_name_str}_INTRINSIC'] = np.array(
         #     c.intrinsic, np.float32)
         # data_dict[f'{cam_name_str}_EXTRINSIC'] = np.reshape(
@@ -170,6 +171,9 @@ def evaluateallframescreatesubmission(frames, outputsubmissionfilepath, outputfi
     print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
     out.release()
 
+    with open('objectsresult.pickle', 'wb') as f:
+        pickle.dump(objects, f)
+
     submission = submission_pb2.Submission()
     submission.task = submission_pb2.Submission.DETECTION_2D
     submission.account_name = 'kaikai.liu@sjsu.edu'
@@ -239,6 +243,129 @@ def createsubmisionobject(objects, boxes, pred_cls, scores, context_name, frame_
         objects.objects.append(o)
         # return o
 
+def evaluateallframesgtfakesubmission(frames, outputsubmissionfilepath, outputfile="./output_video1.mp4"):
+    array_len = len(frames) #4931 frames for validation_0000
+    # 20, 200 frames in one file, downsample by 10
+    print("Frames lenth:", array_len)
+    print("Final_array type:", type(frames))  # class 'list'
+
+    objects = metrics_pb2.Objects()  # submission objects
+
+    frame_width = 1920
+    frame_height = 1280
+    out = cv2.VideoWriter(outputfile, cv2.VideoWriter_fourcc(
+        'M', 'P', '4', 'V'), 5, (frame_width, frame_height))
+    fps = FPS().start()
+
+    #wod_latency_submission.initialize_model()
+
+    #required_field = wod_latency_submission.DATA_FIELDS
+    #print(required_field)
+    #Allconvertedframesdict=[]
+
+    for frameid in range(array_len):
+        #frameid = 5
+        print("frameid:", frameid)
+        # {'key':key, 'context_name':context_name, 'framedict':framedict}
+        frame=frames[frameid]
+        convertedframesdict = convert_frame_to_dict_cameras(frame) #data_array[frameid]
+        #Allconvertedframesdict.append(convertedframesdict)
+        frame_timestamp_micros = convertedframesdict['TIMESTAMP']#['key']
+        context_name = frame.context.name
+
+        o_list = []
+        boundingbox=[]
+        boxscore=[]
+        boxtype=[]
+        for camera_labels in frame.camera_labels:
+            if camera_labels.name != 1: #Only use front camera
+                continue
+            for gt_label in camera_labels.labels:
+                o = metrics_pb2.Object()
+                # The following 3 fields are used to uniquely identify a frame a prediction
+                # is predicted at.
+                o.context_name = frame.context.name
+                # The frame timestamp for the prediction. See Frame::timestamp_micros in
+                # dataset.proto.
+                o.frame_timestamp_micros = frame.timestamp_micros
+                # This is only needed for 2D detection or tracking tasks.
+                # Set it to the camera name the prediction is for.
+                o.camera_name = camera_labels.name
+
+                # Populating box and score.
+                box = label_pb2.Label.Box()
+                box.center_x = gt_label.box.center_x
+                box.center_y = gt_label.box.center_y
+                box.length =   gt_label.box.length
+                box.width =    gt_label.box.width
+                boundingbox.append([box.center_x, box.center_y, box.length, box.width]) #width height
+                o.object.box.CopyFrom(box)
+                # This must be within [0.0, 1.0]. It is better to filter those boxes with
+                # small scores to speed up metrics computation.
+                o.score = 0.9
+                boxscore.append(o.score)
+                # Use correct type.
+                o.object.type = gt_label.type
+                boxtype.append(o.object.type)
+                o_list.append(o)
+                print(f'Camera labelname: {camera_labels.name}, object type: { gt_label.type}, box:{box}')
+
+        # Save the original image
+        #output_path = "./test.png"
+        #visualization_util.save_image_array_as_png(Front_image, output_path)
+        boundingbox=np.array(boundingbox)
+        boxscore=np.array(boxscore)
+        boxtype=np.array(boxtype).astype(np.uint8)
+
+        Front_image = convertedframesdict['FRONT_IMAGE']
+        image_np_with_detections = Front_image.copy()
+        visualization_util.visualize_boxes_and_labels_on_image_array(image_np_with_detections, boundingbox, boxtype, boxscore, category_index, use_normalized_coordinates=False,
+                                                                     max_boxes_to_draw=200,
+                                                                     min_score_thresh=Threshold,
+                                                                     agnostic_mode=False)
+        display_str=f'context_name: {context_name}, timestamp_micros: {frame_timestamp_micros}'
+        visualization_util.draw_text_on_image(image_np_with_detections, 0, 0, display_str, color='black')
+        #visualization_util.save_image_array_as_png(image_np_with_detections, outputfile)
+
+        name = './Test_data/frame' + str(frameid) + '.jpg'
+        #print ('Creating\...' + name)
+        # cv2.imwrite(name, image_np_with_detections) #write to image folder
+        fps.update()
+        #out.write(image_np_with_detections)
+        out.write(cv2.cvtColor(image_np_with_detections, cv2.COLOR_RGB2BGR))
+        #cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        
+
+    # stop the timer and display FPS information
+    fps.stop()
+    print("[INFO] elasped time: {:.2f}".format(fps.elapsed()))
+    print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
+    out.release()
+
+    with open('objectsresult_gtvalall.pickle', 'wb') as f:
+        pickle.dump(objects, f)
+    # with open('allframedics.pickle', 'wb') as f:
+    #     pickle.dump(Allconvertedframesdict, f)
+
+    submission = submission_pb2.Submission()
+    submission.task = submission_pb2.Submission.DETECTION_2D
+    submission.account_name = 'kaikai.liu@sjsu.edu'
+    submission.authors.append('Kaikai Liu')
+    submission.affiliation = 'None'
+    submission.unique_method_name = 'fake'
+    submission.description = 'none'
+    submission.method_link = "empty method"
+    submission.sensor_type = submission_pb2.Submission.CAMERA_ALL
+    submission.number_past_frames_exclude_current = 0
+    submission.number_future_frames_exclude_current = 0
+    submission.inference_results.CopyFrom(objects)
+    f = open(outputsubmissionfilepath, 'wb')  # output submission file
+    f.write(submission.SerializeToString())
+    f.close()
+
+    now = datetime.datetime.now()
+    print("Finished validation, current date and time : ")
+    print(now.strftime("%Y-%m-%d %H:%M:%S"))
 
 def loadWaymoValidationFrames(PATH):
     #validation_folders = ["validation_0000"]#,"validation_0005"]
@@ -264,9 +391,18 @@ def loadWaymoValidationFrames(PATH):
             frames.append(frame)
     return frames
 
+def loadobjectresultspkl():
+    filename = "/Developer/MyRepo/WaymoObjectDetection/objectsresult.pickle"
+    infile = open(filename,'rb')
+    new_dict = pickle.load(infile)
+    infile.close()
+
+    print(type(new_dict))#waymo_open_dataset.protos.metrics_pb2.Objects
+    
 
 if __name__ == "__main__":
     print("Loading Waymo validation frames...")
+    
     PATH = "/DATA5T/Dataset/WaymoDataset/"
     waymovalidationframes = loadWaymoValidationFrames(PATH)
     #mywaymovaldataset = myNewWaymoDataset(PATH, waymovalidationframes, get_transform(train=False))
@@ -275,6 +411,10 @@ if __name__ == "__main__":
     outputfile = "./output/output_video_tf130kval0.mp4"
     outputsubmissionfilepath = './output/tf130k_val0.bin'
 
-    outputfile = "./output/output_video_mm60valall.mp4"
-    outputsubmissionfilepath = './output/mm60_valall.bin'
-    evaluateallframescreatesubmission(waymovalidationframes,outputsubmissionfilepath, outputfile)
+    outputfile = "/Developer/MyRepo/WaymoObjectDetection/output/output_video_mmhpc25valall.mp4"
+    outputsubmissionfilepath = '/Developer/MyRepo/WaymoObjectDetection/output/mmhpc25_valall.bin'
+    #evaluateallframescreatesubmission(waymovalidationframes,outputsubmissionfilepath, outputfile)
+
+    outputfile = "/Developer/MyRepo/WaymoObjectDetection/output/output_video_gtnewvalall.mp4"
+    outputsubmissionfilepath = '/Developer/MyRepo/WaymoObjectDetection/output/gt_valall.bin'
+    evaluateallframesgtfakesubmission(waymovalidationframes,outputsubmissionfilepath, outputfile)
