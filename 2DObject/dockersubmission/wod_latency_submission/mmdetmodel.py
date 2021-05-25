@@ -153,7 +153,7 @@ def run_model(**kwargs):
         for i, bbox in enumerate(bbox_result)
     ]
     labels = np.concatenate(labels)
-    pred_class = [i+1 for i in list(labels)] #output labels starts with index =0
+    #pred_class = [i+1 for i in list(labels)] #output labels starts with index =0
     #print(bboxes)#5,1, last column is the confidence score
     #xmin, ymin, xmax, ymax in pixels
     #print(type(bboxes))
