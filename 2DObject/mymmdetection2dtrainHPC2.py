@@ -59,7 +59,7 @@ cfg.model.roi_head.bbox_head.num_classes = len(classes)# 10
 # We can still use the pre-trained Mask RCNN model though we do not need to
 # use the mask branch
 cfg.load_from = checkpoint #
-cfg.resume_from = workdir + "/epoch_24.pth"
+cfg.resume_from = workdir + "/epoch_26.pth"
 
 # Set up working dir to save files and logs.
 cfg.work_dir = workdir #
@@ -73,7 +73,7 @@ cfg.log_config.interval = 10
 # Change the evaluation metric since we use customized dataset.
 cfg.evaluation.metric = 'bbox'
 # We can set the evaluation interval to reduce the evaluation times
-cfg.evaluation.interval = 1
+cfg.evaluation.interval = 2
 # We can set the checkpoint saving interval to reduce the storage cost
 cfg.checkpoint_config.interval = 1
 

@@ -171,11 +171,11 @@ if __name__ == "__main__":
     #cfg.MODEL.WEIGHTS = os.path.join('/home/010796032/PytorchWork', "fasterrcnn_x101_fpn_model_final_68b088.pkl")#using the local 
     #cfg.MODEL.WEIGHTS = os.path.join('/home/010796032/PytorchWork/output', "model_0079999.pth")
     #cfg.MODEL.WEIGHTS = os.path.join('/home/010796032/PytorchWork/output_waymo', "model_0179999.pth")
-    cfg.MODEL.WEIGHTS = os.path.join('/home/010796032/MyRepo/Detectron2output/', " model_0709999.pth")#"model_0439999.pth")
+    cfg.MODEL.WEIGHTS = os.path.join('/home/010796032/MyRepo/Detectron2output/', " model_0879999.pth")#model_0794999 "model_0439999.pth")
     cfg.SOLVER.IMS_PER_BATCH = 2 #4
     cfg.SOLVER.LR_SCHEDULER_NAME='WarmupCosineLR'
     cfg.SOLVER.BASE_LR = 0.00025  # pick a good LR
-    cfg.SOLVER.MAX_ITER = 800000# 140000    # you may need to train longer for a practical dataset
+    cfg.SOLVER.MAX_ITER = 900000# 140000    # you may need to train longer for a practical dataset
     cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 512 #128 #512#128   # faster, and good enough for this toy dataset (default: 512)
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(FULL_LABEL_CLASSES) #12  # Kitti has 9 classes (including donot care)
 
