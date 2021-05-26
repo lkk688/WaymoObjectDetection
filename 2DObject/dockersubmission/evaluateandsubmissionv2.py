@@ -96,105 +96,6 @@ def convert_frame_to_dict_cameras(frame):
     return data_dict
 
 
-def evaluateallframescreatesubmission(frames, outputsubmissionfilepath, outputfile="./output_video1.mp4"):
-    array_len = len(frames) #4931 frames for validation_0000
-    # 20, 200 frames in one file, downsample by 10
-    print("Frames lenth:", array_len)
-    print("Final_array type:", type(frames))  # class 'list'
-
-    objects = metrics_pb2.Objects()  # submission objects
-
-    frame_width = 1920
-    frame_height = 1280
-    out = cv2.VideoWriter(outputfile, cv2.VideoWriter_fourcc(
-        'M', 'P', '4', 'V'), 5, (frame_width, frame_height))
-    fps = FPS().start()
-
-    wod_latency_submission.initialize_model()
-
-    required_field = wod_latency_submission.DATA_FIELDS
-    print(required_field)
-
-    for frameid in range(array_len):
-        #frameid = 5
-        print("frameid:", frameid)
-        # {'key':key, 'context_name':context_name, 'framedict':framedict}
-        currentframe=frames[frameid]
-        convertedframesdict = convert_frame_to_dict_cameras(currentframe) #data_array[frameid]
-        frame_timestamp_micros = convertedframesdict['TIMESTAMP']#['key']
-        context_name = currentframe.context.name #convertedframesdict['context_name']
-        #framedict = convertedframesdict['framedict']
-        # 10017090168044687777_6380_000_6400_000
-        #print('context_name:', context_name)
-        # print('frame_timestamp_micros:', frame_timestamp_micros)  # 1550083467346370
-
-        #result = wod_latency_submission.run_model(framedict[required_field[0]], framedict[required_field[1]])
-        #result = wod_latency_submission.run_model(**framedict)
-        #Front_image = framedict[required_field[0]]
-        start_time = time.time()
-        #result = wod_latency_submission.run_model(Front_image)
-        result = wod_latency_submission.run_model(**convertedframesdict)#All images
-        end_time = time.time()
-        elapsed_time = end_time - start_time
-        print('Inference time: ' + str(elapsed_time) + 's')
-        # print(result)
-
-        createsubmisionobject(objects, result['boxes'], result['classes'],
-                              result['scores'], context_name, frame_timestamp_micros)
-
-        # Save the original image
-        #output_path = "./test.png"
-        #visualization_util.save_image_array_as_png(Front_image, output_path)
-
-        Front_image = convertedframesdict[required_field[0]]
-        image_np_with_detections = Front_image.copy()
-        visualization_util.visualize_boxes_and_labels_on_image_array(image_np_with_detections, result['boxes'], result['classes'], result['scores'], category_index, use_normalized_coordinates=False,
-                                                                     max_boxes_to_draw=200,
-                                                                     min_score_thresh=Threshold,
-                                                                     agnostic_mode=False)
-        display_str=f'Inference time: {str(elapsed_time*1000)}ms, context_name: {context_name}, timestamp_micros: {frame_timestamp_micros}'
-        visualization_util.draw_text_on_image(image_np_with_detections, 0, 0, display_str, color='black')
-        #visualization_util.save_image_array_as_png(image_np_with_detections, outputfile)
-
-        name = './Test_data/frame' + str(frameid) + '.jpg'
-        #print ('Creating\...' + name)
-        # cv2.imwrite(name, image_np_with_detections) #write to image folder
-        fps.update()
-        #out.write(image_np_with_detections)
-        out.write(cv2.cvtColor(image_np_with_detections, cv2.COLOR_RGB2BGR))
-        #cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-        
-
-    # stop the timer and display FPS information
-    fps.stop()
-    print("[INFO] elasped time: {:.2f}".format(fps.elapsed()))
-    print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
-    out.release()
-
-    with open('objectsresult.pickle', 'wb') as f:
-        pickle.dump(objects, f)
-
-    submission = submission_pb2.Submission()
-    submission.task = submission_pb2.Submission.DETECTION_2D
-    submission.account_name = 'kaikai.liu@sjsu.edu'
-    submission.authors.append('Kaikai Liu')
-    submission.affiliation = 'None'
-    submission.unique_method_name = 'torchvisionfaster'
-    submission.description = 'none'
-    submission.method_link = "empty method"
-    submission.sensor_type = submission_pb2.Submission.CAMERA_ALL
-    submission.number_past_frames_exclude_current = 0
-    submission.number_future_frames_exclude_current = 0
-    submission.inference_results.CopyFrom(objects)
-    f = open(outputsubmissionfilepath, 'wb')  # output submission file
-    f.write(submission.SerializeToString())
-    f.close()
-
-    now = datetime.datetime.now()
-    print("Finished validation, current date and time : ")
-    print(now.strftime("%Y-%m-%d %H:%M:%S"))
-
-
 INSTANCE_pb2 = {
     'Unknown': label_pb2.Label.TYPE_UNKNOWN, 'Vehicles': label_pb2.Label.TYPE_VEHICLE, 'Pedestrians': label_pb2.Label.TYPE_PEDESTRIAN, 'Cyclists': label_pb2.Label.TYPE_CYCLIST
 }
@@ -522,7 +423,7 @@ def evaluateWaymoValidationFramesFakeSubmission(PATH, validation_folders, output
     print("Finished validation, current date and time : ")
     print(now.strftime("%Y-%m-%d %H:%M:%S"))        
 
-def evaluateWaymoValidationFramesSubmission(PATH, validation_folders, outputsubmissionfilepath, outputfile="./output_video1.mp4"):
+def evaluateWaymoValidationFramesSubmission(PATH, validation_folders, outputsubmissionfilepath, VisEnable, outputfile="./output_video1.mp4"):
     data_files = [path for x in validation_folders for path in glob(
         os.path.join(PATH, x, "*.tfrecord"))]
     print(data_files)  # all TFRecord file list
@@ -539,10 +440,11 @@ def evaluateWaymoValidationFramesSubmission(PATH, validation_folders, outputsubm
     required_field = wod_latency_submission.DATA_FIELDS
     print(required_field)
 
-    frame_width = 1920
-    frame_height = 1280
-    out = cv2.VideoWriter(outputfile, cv2.VideoWriter_fourcc(
-        'M', 'P', '4', 'V'), 5, (frame_width, frame_height))
+    if VisEnable==True:
+        frame_width = 1920
+        frame_height = 1280
+        out = cv2.VideoWriter(outputfile, cv2.VideoWriter_fourcc(
+            'M', 'P', '4', 'V'), 5, (frame_width, frame_height))
     fps = FPS().start()
 
     frameid=0
@@ -562,10 +464,10 @@ def evaluateWaymoValidationFramesSubmission(PATH, validation_folders, outputsubm
             context_name = frame.context.name
             print(f'Current frame id: {frameid}, context_name: {context_name}, frame_timestamp_micros: {frame_timestamp_micros}')
 
-            start_time = time.time()
+            start_time = time.perf_counter()#.time()
             #result = wod_latency_submission.run_model(Front_image)
             result = wod_latency_submission.run_model(**convertedframesdict)#All images
-            end_time = time.time()
+            end_time = time.perf_counter()#.time()
             elapsed_time = end_time - start_time
             print('Inference time: ' + str(elapsed_time) + 's')
             # print(result)
@@ -573,33 +475,35 @@ def evaluateWaymoValidationFramesSubmission(PATH, validation_folders, outputsubm
             createsubmisionobject(objects, result['boxes'], result['classes'],
                                 result['scores'], context_name, frame_timestamp_micros)
 
-            Front_image = convertedframesdict[required_field[0]]
-            #Front_image = convertedframesdict['FRONT_IMAGE']
-            image_np_with_detections = Front_image.copy()
-            visualization_util.visualize_boxes_and_labels_on_image_array(image_np_with_detections, result['boxes'], result['classes'], result['scores'], category_index, use_normalized_coordinates=False,
-                                                                        max_boxes_to_draw=200,
-                                                                        min_score_thresh=Threshold,
-                                                                        agnostic_mode=False)
-            display_str=f'Inference time: {str(elapsed_time*1000)}ms, context_name: {context_name}, timestamp_micros: {frame_timestamp_micros}'
-            visualization_util.draw_text_on_image(image_np_with_detections, 0, 0, display_str, color='black')
-            #visualization_util.save_image_array_as_png(image_np_with_detections, outputfile)
+            if VisEnable==True:
+                Front_image = convertedframesdict[required_field[0]]
+                #Front_image = convertedframesdict['FRONT_IMAGE']
+                image_np_with_detections = Front_image.copy()
+                visualization_util.visualize_boxes_and_labels_on_image_array(image_np_with_detections, result['boxes'], result['classes'], result['scores'], category_index, use_normalized_coordinates=False,
+                                                                            max_boxes_to_draw=200,
+                                                                            min_score_thresh=Threshold,
+                                                                            agnostic_mode=False)
+                display_str=f'Inference time: {str(elapsed_time*1000)}ms, context_name: {context_name}, timestamp_micros: {frame_timestamp_micros}'
+                visualization_util.draw_text_on_image(image_np_with_detections, 0, 0, display_str, color='black')
+                #visualization_util.save_image_array_as_png(image_np_with_detections, outputfile)
 
-            name = './Test_data/frame' + str(frameid) + '.jpg'
-            #print ('Creating\...' + name)
-            # cv2.imwrite(name, image_np_with_detections) #write to image folder
-            fps.update()
-            #out.write(image_np_with_detections)
-            out.write(cv2.cvtColor(image_np_with_detections, cv2.COLOR_RGB2BGR))
-            #cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+                name = './Test_data/frame' + str(frameid) + '.jpg'
+                #print ('Creating\...' + name)
+                # cv2.imwrite(name, image_np_with_detections) #write to image folder
+                #out.write(image_np_with_detections)
+                out.write(cv2.cvtColor(image_np_with_detections, cv2.COLOR_RGB2BGR))
+                #cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
             frameid=frameid+1
+            fps.update()
 
     # stop the timer and display FPS information
     fps.stop()
     print("[INFO] elasped time: {:.2f}".format(fps.elapsed()))
     print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
-    out.release()
+    if VisEnable==True:
+        out.release()
 
-    with open('objectsresult_detectron282k_val0.pickle', 'wb') as f:
+    with open('objectsresult0525_detectron282k_valall_front.pickle', 'wb') as f:
         pickle.dump(objects, f)
     # with open('allframedics.pickle', 'wb') as f:
     #     pickle.dump(Allconvertedframesdict, f)
@@ -610,6 +514,109 @@ def evaluateWaymoValidationFramesSubmission(PATH, validation_folders, outputsubm
     submission.authors.append('Kaikai Liu')
     submission.affiliation = 'None'
     submission.unique_method_name = 'fake'
+    submission.description = 'none'
+    submission.method_link = "empty method"
+    submission.sensor_type = submission_pb2.Submission.CAMERA_ALL
+    submission.number_past_frames_exclude_current = 0
+    submission.number_future_frames_exclude_current = 0
+    submission.inference_results.CopyFrom(objects)
+    f = open(outputsubmissionfilepath, 'wb')  # output submission file
+    f.write(submission.SerializeToString())
+    f.close()
+
+    now = datetime.datetime.now()
+    print("Finished validation, current date and time : ")
+    print(now.strftime("%Y-%m-%d %H:%M:%S"))  
+
+def savedetectedimagetofile(Image, frameid, result, cameraname, display_str, framenameprefix):
+    image_np_with_detections = Image.copy()
+    visualization_util.visualize_boxes_and_labels_on_image_array(image_np_with_detections, result['boxes'], result['classes'], result['scores'], category_index, use_normalized_coordinates=False,
+                                                                max_boxes_to_draw=200,
+                                                                min_score_thresh=Threshold,
+                                                                agnostic_mode=False)
+    #display_str=f'Inference time: {str(elapsed_time*1000)}ms, context_name: {context_name}, timestamp_micros: {frame_timestamp_micros}'
+    visualization_util.draw_text_on_image(image_np_with_detections, 0, 0, display_str, color='black')
+    #visualization_util.save_image_array_as_png(image_np_with_detections, outputfile)
+
+    name = './output/frames/' + framenameprefix+str(frameid) + '_'+cameraname+'.jpg'
+    #print ('Creating\...' + name)
+    cv2.imwrite(name, cv2.cvtColor(image_np_with_detections, cv2.COLOR_RGB2BGR)) #write to image folder
+    #out.write(image_np_with_detections)
+    #out.write(cv2.cvtColor(image_np_with_detections, cv2.COLOR_RGB2BGR))
+    #cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+
+
+def evaluateWaymoValidationFramesAllcameraSubmission(PATH, validation_folders, outputsubmissionfilepath, VisEnable, nameprefix="output"):
+    data_files = [path for x in validation_folders for path in glob(
+        os.path.join(PATH, x, "*.tfrecord"))]
+    print(data_files)  # all TFRecord file list
+    print(len(data_files))
+    # create a list of dataset for each TFRecord file
+    dataset = [tf.data.TFRecordDataset(
+        FILENAME, compression_type='') for FILENAME in data_files]
+    # total number of TFrecord files * 40 frame(each TFrecord)
+    
+    objects = metrics_pb2.Objects()  # submission objects
+
+    wod_latency_submission.initialize_model()
+
+    required_field = wod_latency_submission.DATA_FIELDS
+    print(required_field)
+
+    fps = FPS().start()
+
+    allcameras=["FRONT_IMAGE", "FRONT_LEFT_IMAGE", "FRONT_RIGHT_IMAGE", "SIDE_LEFT_IMAGE", "SIDE_RIGHT_IMAGE"]
+
+    frameid=0
+    testImagedict={}
+    for i, data_file in enumerate(dataset):
+        print("Datafile: ", i)  # Each TFrecord file
+        # Create frame based on Waymo API, 199 frames per TFrecord (20s, 10Hz)
+        for idx, data in enumerate(data_file):
+            #             if idx % 5 != 0: #Downsample every 5 images, reduce to 2Hz, total around 40 frames
+            #                 continue
+            frame = open_dataset.Frame()
+            frame.ParseFromString(bytearray(data.numpy()))
+
+            #frame=frames[frameid]
+            convertedframesdict = convert_frame_to_dict_cameras(frame) #data_array[frameid]
+            #Allconvertedframesdict.append(convertedframesdict)
+            frame_timestamp_micros = convertedframesdict['TIMESTAMP']#['key']
+            context_name = frame.context.name
+            print(f'Current frame id: {frameid}, idx: {idx}, context_name: {context_name}, frame_timestamp_micros: {frame_timestamp_micros}')
+
+            for imagename in allcameras:#go through all cameras
+                testImagedict[required_field[0]]=convertedframesdict[imagename].copy()
+                start_time = time.perf_counter()#.time()
+                #result = wod_latency_submission.run_model(Front_image)
+                result = wod_latency_submission.run_model(**testImagedict)#All images
+                end_time = time.perf_counter()#.time()
+                elapsed_time = end_time - start_time
+                print('Inference time: ' + str(elapsed_time*1000) + f'ms, camera name: {imagename}')
+                createsubmisionobject(objects, result['boxes'], result['classes'],
+                                    result['scores'], context_name, frame_timestamp_micros)
+                if VisEnable==True:
+                    display_str=f'Inference time: {str(elapsed_time*1000)}ms, camera name: {imagename}, context_name: {context_name}, timestamp_micros: {frame_timestamp_micros}'
+                    savedetectedimagetofile(convertedframesdict[imagename], frameid, result, imagename, display_str, nameprefix)
+                fps.update()
+            frameid=frameid+1
+
+    # stop the timer and display FPS information
+    fps.stop()
+    print("[INFO] elasped time: {:.2f}".format(fps.elapsed()))
+    print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
+
+    with open(nameprefix+'objectsresults.pickle', 'wb') as f:
+        pickle.dump(objects, f)
+    # with open('allframedics.pickle', 'wb') as f:
+    #     pickle.dump(Allconvertedframesdict, f)
+
+    submission = submission_pb2.Submission()
+    submission.task = submission_pb2.Submission.DETECTION_2D
+    submission.account_name = 'kaikai.liu@sjsu.edu'
+    submission.authors.append('Kaikai Liu')
+    submission.affiliation = 'San Jose State University'
+    submission.unique_method_name = nameprefix #'fake'
     submission.description = 'none'
     submission.method_link = "empty method"
     submission.sensor_type = submission_pb2.Submission.CAMERA_ALL
@@ -637,13 +644,18 @@ if __name__ == "__main__":
     print("Loading Waymo validation frames...")
     
     PATH = "/DATA5T/Dataset/WaymoDataset/"
-    outputfile = "/Developer/MyRepo/WaymoObjectDetection/output/output0524_detectron282k_val0.mp4"
-    outputsubmissionfilepath = '/Developer/MyRepo/WaymoObjectDetection/output/output0524_detectron282k_val0.bin'
+    outputfile = "/Developer/MyRepo/WaymoObjectDetection/output/output0525_detectron282k_valall.mp4"
+    outputsubmissionfilepath = '/Developer/MyRepo/WaymoObjectDetection/output/output0525_detectron282k_valall.bin'
     #validation_folders = ["validation_0000"]#,"validation_0005"]
     # ["validation_0007","validation_0006","validation_0005","validation_0004","validation_0003","validation_0002","validation_0001","validation_0000"]
     validation_folders = ["validation_0000", "validation_0001", "validation_0002","validation_0003", "validation_0004", "validation_0005", "validation_0006", "validation_0007"]
     #evaluateWaymoValidationFramesFakeSubmission(PATH, validation_folders, outputsubmissionfilepath, outputfile)
-    evaluateWaymoValidationFramesSubmission(PATH, validation_folders, outputsubmissionfilepath, outputfile)
+    VisEnable=False #True
+    #evaluateWaymoValidationFramesSubmission(PATH, validation_folders, outputsubmissionfilepath, VisEnable,outputfile)
+    nameprefix="outputallcamera0525_detectron282k_"
+    #outputfile = "/Developer/MyRepo/WaymoObjectDetection/output/"+nameprefix+"valall.mp4"#output0525_detectron282k_valall.mp4"
+    outputsubmissionfilepath = "/Developer/MyRepo/WaymoObjectDetection/output/"+nameprefix+"valall.bin"# output0525_detectron282k_valall.bin'
+    evaluateWaymoValidationFramesAllcameraSubmission(PATH, validation_folders, outputsubmissionfilepath, VisEnable,nameprefix)
 
     # waymovalidationframes = loadWaymoValidationFrames(PATH)
     # #mywaymovaldataset = myNewWaymoDataset(PATH, waymovalidationframes, get_transform(train=False))

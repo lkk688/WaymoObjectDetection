@@ -420,8 +420,9 @@ if __name__ == "__main__":
     # If ''`checkpoint_dir` is provided, this binary operates in eval-only mode, ''writing resulting metrics to `model_dir`.'
     checkpoint_dir = '/Developer/MyRepo/mymodels/tfssdresnet50_1024_ckpt100k/checkpoint/'#tf_ssdresnet50_output'
     
-    model_dir = '/Developer/MyRepo/mymodels/tf_ssdresnet50_output/evaluation2' #
-    checkpoint_dir = '/Developer/MyRepo/mymodels/tf_ssdresnet50_output/'#tf_ssdresnet50_output'
+    pipeline_config_path = '/Developer/MyRepo/WaymoObjectDetection/2DObject/tfobjectdetection/tf_ssdresnet50model2_1024_pipeline_P100.config'
+    model_dir = '/Developer/MyRepo/mymodels/tfssdresnet50_1024/model2150kevaluation/' #
+    checkpoint_dir = '/Developer/MyRepo/mymodels/tfssdresnet50_1024/model2exported150k/checkpoint/'#tf_ssdresnet50_output'
     
     strategy = tf.compat.v2.distribute.MirroredStrategy()
     # , 'Number of seconds to wait for an''evaluation checkpoint before exiting.'
