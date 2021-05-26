@@ -25,16 +25,31 @@ DATA_FIELDS = ['FRONT_IMAGE']
 FILTERthreshold=0.2
 classes=('vehicle', 'pedestrian', 'sign', 'cyclist')
 
+model_dir = '/Developer/MyRepo/mymodels/mmmodels/HPCwaymococo_fasterrcnnr101train/epoch_25.pth'
+Basemmdetection='/Developer/3DObject/mmdetection/'
+config = Basemmdetection+'configs/faster_rcnn/faster_rcnn_r101_fpn_2x_coco.py'
+
+from os import path
+def setupmodeldir(model_path, config_path=''):
+    global model_dir
+    if path.exists(model_path):
+        model_dir=model_path
+        print(f'Setup new model path:{model_path}')
+    if path.exists(config_path):
+        global config
+        config=config_path
+        print(f'Setup new config path:{config}')
+
 def initialize_model():
-    Basemmdetection='/Developer/3DObject/mmdetection/'
-    config = Basemmdetection+'configs/faster_rcnn/faster_rcnn_r101_fpn_2x_coco.py'
+    
     # Setup a checkpoint file to load
     #checkpoint = '/Developer/3DObject/mymmdetection/waymococo_fasterrcnnr101train/epoch_60.pth'
     
-    checkpoint = '/Developer/MyRepo/mymodels/mmmodels/HPCwaymococo_fasterrcnnr101train/epoch_25.pth'
+    #checkpoint = '/Developer/MyRepo/mymodels/mmmodels/HPCwaymococo_fasterrcnnr101train/epoch_25.pth'
     device='cuda:0'
     global model
-    
+    global config
+    global model_dir
     if isinstance(config, str):
         config = mmcv.Config.fromfile(config)
     elif not isinstance(config, mmcv.Config):
@@ -44,9 +59,9 @@ def initialize_model():
     config.model.train_cfg = None
     config.model.roi_head.bbox_head.num_classes = len(classes)
     model = build_detector(config.model, test_cfg=config.get('test_cfg'))
-    if checkpoint is not None:
+    if model_dir is not None:
         map_loc = 'cpu' if device == 'cpu' else None
-        checkpoint = load_checkpoint(model, checkpoint, map_location=map_loc)
+        checkpoint = load_checkpoint(model, model_dir, map_location=map_loc)
         if 'CLASSES' in checkpoint.get('meta', {}):
             model.CLASSES = checkpoint['meta']['CLASSES']
         else:

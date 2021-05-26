@@ -17,8 +17,28 @@
 # run_model = mmdetmodel.run_model
 # DATA_FIELDS = mmdetmodel.DATA_FIELDS
 
-from . import detectron2model
+# from . import detectron2model
 
-initialize_model = detectron2model.initialize_model
-run_model = detectron2model.run_model
-DATA_FIELDS = detectron2model.DATA_FIELDS
+# initialize_model = detectron2model.initialize_model
+# run_model = detectron2model.run_model
+# DATA_FIELDS = detectron2model.DATA_FIELDS
+
+Modelname="detectron2"
+if Modelname=="detectron2":
+    from . import detectron2model
+    initialize_model = detectron2model.initialize_model
+    run_model = detectron2model.run_model
+    DATA_FIELDS = detectron2model.DATA_FIELDS
+    setupmodeldir = detectron2model.setupmodeldir
+elif Modelname=="mmdet":
+    from . import mmdetmodel
+    initialize_model = mmdetmodel.initialize_model
+    run_model = mmdetmodel.run_model
+    DATA_FIELDS = mmdetmodel.DATA_FIELDS
+    setupmodeldir = mmdetmodel.setupmodeldir
+elif Modelname=="tf2od":
+    from . import tf2model
+    initialize_model = tf2model.initialize_model
+    run_model = tf2model.run_model
+    DATA_FIELDS = tf2model.DATA_FIELDS
+    setupmodeldir = tf2model.setupmodeldir

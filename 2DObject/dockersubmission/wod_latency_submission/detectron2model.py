@@ -23,20 +23,37 @@ classes=('vehicle', 'pedestrian', 'sign', 'cyclist')
 
 aug = None
 
+model_dir='/Developer/MyRepo/mymodels/detectron2models/model_0819999.pth'
+modelname = 'faster_rcnn_X_101_32x8d_FPN_3x'
+config="COCO-Detection/"+modelname+".yaml"
+from os import path
+def setupmodeldir(model_path, config_path=''):
+    global model_dir
+    if path.exists(model_path):
+        model_dir=model_path
+        print(f'Setup new model path:{model_path}')
+    if path.exists(config_path):
+        global config
+        config=config_path
+        print(f'Setup new config path:{config}')
+
 def initialize_model():
     """Initialize the global model variable to the pretrained EfficientDet.
     This assumes that the EfficientDet model has already been downloaded to a
     specific path, as done in the Dockerfile for this example.
     """
     #model_dir = '/Developer/MyRepo/mymodels/tfssdresnet50_1024_ckpt100k/saved_model'
-    model_dir = '/Developer/MyRepo/mymodels/detectron2models'
-    modelname = 'faster_rcnn_X_101_32x8d_FPN_3x'
-    modelfilename = 'model_0819999.pth'
+    #model_dir = '/Developer/MyRepo/mymodels/detectron2models'
+    
+    #modelfilename = 'model_0819999.pth'
     #load saved model
     global model
-    
+    global config
+    global model_dir
+
     cfg = get_cfg()
-    cfg.merge_from_file(model_zoo.get_config_file("COCO-Detection/"+modelname+".yaml" ))#faster_rcnn_X_101_32x8d_FPN_3x
+    cfg.merge_from_file(model_zoo.get_config_file(config))
+    #cfg.merge_from_file(model_zoo.get_config_file("COCO-Detection/"+modelname+".yaml" ))#faster_rcnn_X_101_32x8d_FPN_3x
     #self.cfg.merge_from_file(model_zoo.get_config_file("COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml"))#faster_rcnn_X_101_32x8d_FPN_3x
     #cfg.merge_from_file('faster_rcnn_R_101_C4_3x.yaml')#Tridentnet
     #cfg.merge_from_file(model_zoo.get_config_file("COCO-Detection/retinanet_R_101_FPN_3x.yaml"))
@@ -44,9 +61,9 @@ def initialize_model():
     #cfg.DATASETS.TEST = ("myuav1_val",)
     cfg.DATALOADER.NUM_WORKERS = 1 #2
     #cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml")  # Let training initialize from model zoo
-    cfg.MODEL.WEIGHTS = os.path.join(model_dir, modelfilename) #model_0159999.pth
+    cfg.MODEL.WEIGHTS = model_dir #os.path.join(model_dir, modelfilename) #model_0159999.pth
     if os.path.isfile(cfg.MODEL.WEIGHTS) == False:
-        cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-Detection/"+self.args.modelname+".yaml")  # Let training initialize from model zoo
+        cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-Detection/"+modelname+".yaml")  # Let training initialize from model zoo
     else:
         cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 512#128   # faster, and good enough for this toy dataset (default: 512)
         cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(classes)  # Kitti has 9 classes (including donot care)

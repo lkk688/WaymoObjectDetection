@@ -1,16 +1,31 @@
 """Module to load and run an Tensorflow model."""
 import os
-from . import TF2Detector
+#from . import TF2Detector
 
 import numpy as np
 from object_detection.builders import model_builder
 from object_detection.utils import config_util
 import tensorflow as tf
 
+
+
 # Global variables that hold the models
 model = None
 DATA_FIELDS = ['FRONT_IMAGE']
 FILTERthreshold=0.2
+model_dir = '/Developer/MyRepo/mymodels/tf_ssdresnet50_output/exported130/saved_model'
+config = ''#Use optional load from checkpoint
+from os import path
+def setupmodeldir(model_path, config_path=''):
+    global model_dir
+    if path.exists(model_path):
+        model_dir=model_path
+        print(f'Setup new model path:{model_path}')
+    if path.exists(config_path):
+        global config
+        config=config_path
+        print(f'Setup new config path:{config}')
+
 
 def initialize_model():
     """Initialize the global model variable to the pretrained EfficientDet.
@@ -18,7 +33,7 @@ def initialize_model():
     specific path, as done in the Dockerfile for this example.
     """
     #model_dir = '/Developer/MyRepo/mymodels/tfssdresnet50_1024_ckpt100k/saved_model'
-    model_dir = '/Developer/MyRepo/mymodels/tf_ssdresnet50_output/exported130/saved_model'
+    #model_dir = '/Developer/MyRepo/mymodels/tf_ssdresnet50_output/exported130/saved_model'
     #load saved model
     global model
     model = tf.saved_model.load(model_dir)

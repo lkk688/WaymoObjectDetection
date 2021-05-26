@@ -546,7 +546,7 @@ def savedetectedimagetofile(Image, frameid, result, cameraname, display_str, fra
     #cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
 
 
-def evaluateWaymoValidationFramesAllcameraSubmission(PATH, validation_folders, outputsubmissionfilepath, VisEnable, nameprefix="output"):
+def evaluateWaymoValidationFramesAllcameraSubmission(PATH, model_path, config_path, validation_folders, outputsubmissionfilepath, VisEnable, nameprefix="output"):
     data_files = [path for x in validation_folders for path in glob(
         os.path.join(PATH, x, "*.tfrecord"))]
     print(data_files)  # all TFRecord file list
@@ -555,10 +555,14 @@ def evaluateWaymoValidationFramesAllcameraSubmission(PATH, validation_folders, o
     dataset = [tf.data.TFRecordDataset(
         FILENAME, compression_type='') for FILENAME in data_files]
     # total number of TFrecord files * 40 frame(each TFrecord)
+
+    wod_latency_submission.setupmodeldir(model_path, config_path)
+
+    wod_latency_submission.initialize_model()
     
     objects = metrics_pb2.Objects()  # submission objects
 
-    wod_latency_submission.initialize_model()
+    
 
     required_field = wod_latency_submission.DATA_FIELDS
     print(required_field)
@@ -606,7 +610,7 @@ def evaluateWaymoValidationFramesAllcameraSubmission(PATH, validation_folders, o
     print("[INFO] elasped time: {:.2f}".format(fps.elapsed()))
     print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
 
-    with open(nameprefix+'objectsresults.pickle', 'wb') as f:
+    with open(nameprefix+'.pickle', 'wb') as f:
         pickle.dump(objects, f)
     # with open('allframedics.pickle', 'wb') as f:
     #     pickle.dump(Allconvertedframesdict, f)
@@ -646,16 +650,18 @@ if __name__ == "__main__":
     PATH = "/DATA5T/Dataset/WaymoDataset/"
     outputfile = "/Developer/MyRepo/WaymoObjectDetection/output/output0525_detectron282k_valall.mp4"
     outputsubmissionfilepath = '/Developer/MyRepo/WaymoObjectDetection/output/output0525_detectron282k_valall.bin'
-    #validation_folders = ["validation_0000"]#,"validation_0005"]
+    validation_folders = ["validation_0007"]#,"validation_0005"]
     # ["validation_0007","validation_0006","validation_0005","validation_0004","validation_0003","validation_0002","validation_0001","validation_0000"]
-    validation_folders = ["validation_0000", "validation_0001", "validation_0002","validation_0003", "validation_0004", "validation_0005", "validation_0006", "validation_0007"]
+    #validation_folders = ["validation_0000", "validation_0001", "validation_0002","validation_0003", "validation_0004", "validation_0005", "validation_0006", "validation_0007"]
     #evaluateWaymoValidationFramesFakeSubmission(PATH, validation_folders, outputsubmissionfilepath, outputfile)
-    VisEnable=False #True
+    VisEnable=True #False #True
     #evaluateWaymoValidationFramesSubmission(PATH, validation_folders, outputsubmissionfilepath, VisEnable,outputfile)
-    nameprefix="outputallcamera0525_detectron282k_"
+    nameprefix="outputallcamera0526_detectron282k_val7"
     #outputfile = "/Developer/MyRepo/WaymoObjectDetection/output/"+nameprefix+"valall.mp4"#output0525_detectron282k_valall.mp4"
-    outputsubmissionfilepath = "/Developer/MyRepo/WaymoObjectDetection/output/"+nameprefix+"valall.bin"# output0525_detectron282k_valall.bin'
-    evaluateWaymoValidationFramesAllcameraSubmission(PATH, validation_folders, outputsubmissionfilepath, VisEnable,nameprefix)
+    outputsubmissionfilepath = "/Developer/MyRepo/WaymoObjectDetection/output/"+nameprefix+".bin"# output0525_detectron282k_valall.bin'
+    model_path=''
+    config_path=''
+    evaluateWaymoValidationFramesAllcameraSubmission(PATH, model_path, config_path, validation_folders, outputsubmissionfilepath, VisEnable,nameprefix)
 
     # waymovalidationframes = loadWaymoValidationFrames(PATH)
     # #mywaymovaldataset = myNewWaymoDataset(PATH, waymovalidationframes, get_transform(train=False))
