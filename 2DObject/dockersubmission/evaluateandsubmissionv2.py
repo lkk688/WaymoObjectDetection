@@ -528,7 +528,7 @@ def evaluateWaymoValidationFramesSubmission(PATH, validation_folders, outputsubm
     print("Finished validation, current date and time : ")
     print(now.strftime("%Y-%m-%d %H:%M:%S"))  
 
-def savedetectedimagetofile(Image, frameid, result, cameraname, display_str, framenameprefix):
+def savedetectedimagetofile(Image, frameid, result, cameraname, display_str, framenameprefix, savefolderpath):
     image_np_with_detections = Image.copy()
     visualization_util.visualize_boxes_and_labels_on_image_array(image_np_with_detections, result['boxes'], result['classes'], result['scores'], category_index, use_normalized_coordinates=False,
                                                                 max_boxes_to_draw=200,
@@ -537,16 +537,22 @@ def savedetectedimagetofile(Image, frameid, result, cameraname, display_str, fra
     #display_str=f'Inference time: {str(elapsed_time*1000)}ms, context_name: {context_name}, timestamp_micros: {frame_timestamp_micros}'
     visualization_util.draw_text_on_image(image_np_with_detections, 0, 0, display_str, color='black')
     #visualization_util.save_image_array_as_png(image_np_with_detections, outputfile)
-
-    name = './output/frames/' + framenameprefix+str(frameid) + '_'+cameraname+'.jpg'
-    #print ('Creating\...' + name)
-    cv2.imwrite(name, cv2.cvtColor(image_np_with_detections, cv2.COLOR_RGB2BGR)) #write to image folder
+    #savefolderpath='/home/010796032/MyRepo/myoutputs'#/home/010796032/MyRepo/WaymoObjectDetection/output/'
+    savepath=os.path.join(savefolderpath, framenameprefix)
+    if os.path.exists(savepath)==False:
+        os.mkdir(savepath)
+    #name = savepath + framenameprefix+str(frameid) + '_'+cameraname+'.jpg'
+    name = os.path.join(savepath, str(frameid) + '_'+cameraname+'.jpg')
+    #print ('Creating:' + name)
+    writeStatus = cv2.imwrite(name, cv2.cvtColor(image_np_with_detections, cv2.COLOR_RGB2BGR)) #write to image folder
+    if writeStatus is False:
+        print("image save problem")
     #out.write(image_np_with_detections)
     #out.write(cv2.cvtColor(image_np_with_detections, cv2.COLOR_RGB2BGR))
     #cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
 
 
-def evaluateWaymoValidationFramesAllcameraSubmission(PATH, model_path, config_path, validation_folders, outputsubmissionfilepath, VisEnable, nameprefix="output"):
+def evaluateWaymoValidationFramesAllcameraSubmission(PATH, model_path, config_path, validation_folders, outputsubmissionfilepath, VisEnable, imagesavepath, nameprefix="output"):
     data_files = [path for x in validation_folders for path in glob(
         os.path.join(PATH, x, "*.tfrecord"))]
     print(data_files)  # all TFRecord file list
@@ -601,7 +607,7 @@ def evaluateWaymoValidationFramesAllcameraSubmission(PATH, model_path, config_pa
                                     result['scores'], context_name, frame_timestamp_micros)
                 if VisEnable==True:
                     display_str=f'Inference time: {str(elapsed_time*1000)}ms, camera name: {imagename}, context_name: {context_name}, timestamp_micros: {frame_timestamp_micros}'
-                    savedetectedimagetofile(convertedframesdict[imagename], frameid, result, imagename, display_str, nameprefix)
+                    savedetectedimagetofile(convertedframesdict[imagename], frameid, result, imagename, display_str, nameprefix, imagesavepath)
                 fps.update()
             frameid=frameid+1
 
@@ -610,7 +616,7 @@ def evaluateWaymoValidationFramesAllcameraSubmission(PATH, model_path, config_pa
     print("[INFO] elasped time: {:.2f}".format(fps.elapsed()))
     print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
 
-    with open(nameprefix+'.pickle', 'wb') as f:
+    with open(os.path.join(imagesavepath, nameprefix+'.pickle'), 'wb') as f:
         pickle.dump(objects, f)
     # with open('allframedics.pickle', 'wb') as f:
     #     pickle.dump(Allconvertedframesdict, f)
@@ -661,7 +667,8 @@ if __name__ == "__main__":
     outputsubmissionfilepath = "/Developer/MyRepo/WaymoObjectDetection/output/"+nameprefix+".bin"# output0525_detectron282k_valall.bin'
     model_path=''
     config_path=''
-    evaluateWaymoValidationFramesAllcameraSubmission(PATH, model_path, config_path, validation_folders, outputsubmissionfilepath, VisEnable,nameprefix)
+    savepath='/Developer/MyRepo/WaymoObjectDetection/output/'
+    evaluateWaymoValidationFramesAllcameraSubmission(PATH, model_path, config_path, validation_folders, outputsubmissionfilepath, VisEnable,savepath, nameprefix)
 
     # waymovalidationframes = loadWaymoValidationFrames(PATH)
     # #mywaymovaldataset = myNewWaymoDataset(PATH, waymovalidationframes, get_transform(train=False))
