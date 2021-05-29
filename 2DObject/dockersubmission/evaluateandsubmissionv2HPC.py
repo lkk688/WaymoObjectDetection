@@ -144,6 +144,42 @@ def createsubmisionobject(objects, boxes, pred_cls, scores, context_name, frame_
         objects.objects.append(o)
         # return o
 
+def createsubmisioncameraobject(objects, boxes, pred_cls, scores, context_name, frame_timestamp_micros, camera_name):
+    total_boxes = len(boxes)
+    for i in range(total_boxes):  # patch in pred_bbox:
+        label = pred_cls[i]
+        #(center_x, center_y, width, height) in image size
+        bbox = boxes[i] #[1246.5217, 750.64905, 113.49747, 103.9653]
+        score = scores[i]
+        o = metrics_pb2.Object()
+        o.context_name = context_name  # frame.context.name
+        # frame.timestamp_micros)
+        o.frame_timestamp_micros = int(frame_timestamp_micros)
+        o.camera_name = camera_name #dataset_pb2.CameraName.FRONT
+        o.score = score
+
+        # Populating box and score.
+        box = label_pb2.Label.Box()
+        box.center_x = bbox[0]
+        box.center_y = bbox[1]
+        box.width=bbox[2]
+        box.length=bbox[3]
+        # box.length = bbox[1][0] - bbox[0][0]
+        # box.width = bbox[1][1] - bbox[0][1]
+        # box.center_x = bbox[0][0] + box.length * 0.5
+        # box.center_y = bbox[0][1] + box.width * 0.5
+
+        o.object.box.CopyFrom(box)
+        o.object.detection_difficulty_level = label_pb2.Label.LEVEL_1
+        o.object.num_lidar_points_in_box = 100
+        # INSTANCE_CATEGORY_NAMES.index(label) #INSTANCE_pb2[label]
+        o.object.type = INSTANCEindex_pb2[label] #INSTANCE_pb2[label]
+        # print(
+        #     f'Object type label: {label}, {INSTANCE_pb2[label]}, {INSTANCE_CATEGORY_NAMES.index(label)}')
+        assert o.object.type != label_pb2.Label.TYPE_UNKNOWN
+        objects.objects.append(o)
+        # return o
+
 def evaluateallframesgtfakesubmission(frames, outputsubmissionfilepath, outputfile="./output_video1.mp4"):
     array_len = len(frames) #4931 frames for validation_0000
     # 20, 200 frames in one file, downsample by 10
@@ -552,6 +588,12 @@ def savedetectedimagetofile(Image, frameid, result, cameraname, display_str, fra
     #cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
 
 
+#https://github.com/waymo-research/waymo-open-dataset/blob/master/waymo_open_dataset/metrics/tools/create_prediction_file_example.py
+cameraname_map = {
+    "FRONT_IMAGE":dataset_pb2.CameraName.FRONT, "FRONT_LEFT_IMAGE": dataset_pb2.CameraName.FRONT_LEFT, "FRONT_RIGHT_IMAGE": dataset_pb2.CameraName.FRONT_RIGHT, "SIDE_LEFT_IMAGE": dataset_pb2.CameraName.SIDE_LEFT, "SIDE_RIGHT_IMAGE": dataset_pb2.CameraName.SIDE_RIGHT
+}#1-5
+allcameras=["FRONT_IMAGE", "FRONT_LEFT_IMAGE", "FRONT_RIGHT_IMAGE", "SIDE_LEFT_IMAGE", "SIDE_RIGHT_IMAGE"]
+
 def evaluateWaymoValidationFramesAllcameraSubmission(PATH, model_path, config_path, validation_folders, outputsubmissionfilepath, VisEnable,  imagesavepath, nameprefix="output"):
     data_files = [path for x in validation_folders for path in glob(
         os.path.join(PATH, x, "*.tfrecord"))]
@@ -574,8 +616,6 @@ def evaluateWaymoValidationFramesAllcameraSubmission(PATH, model_path, config_pa
     print(required_field)
 
     #fps = FPS().start()
-
-    allcameras=["FRONT_IMAGE", "FRONT_LEFT_IMAGE", "FRONT_RIGHT_IMAGE", "SIDE_LEFT_IMAGE", "SIDE_RIGHT_IMAGE"]
 
     frameid=0
     testImagedict={}
@@ -603,8 +643,8 @@ def evaluateWaymoValidationFramesAllcameraSubmission(PATH, model_path, config_pa
                 end_time = time.perf_counter()#.time()
                 elapsed_time = end_time - start_time
                 print('Inference time: ' + str(elapsed_time*1000) + f'ms, camera name: {imagename}')
-                createsubmisionobject(objects, result['boxes'], result['classes'],
-                                    result['scores'], context_name, frame_timestamp_micros)
+                #createsubmisionobject(objects, result['boxes'], result['classes'], result['scores'], context_name, frame_timestamp_micros)
+                createsubmisioncameraobject(objects, result['boxes'], result['classes'], result['scores'], context_name, frame_timestamp_micros, cameraname_map[imagename])
                 if VisEnable==True:
                     display_str=f'Inference time: {str(elapsed_time*1000)}ms, camera name: {imagename}, context_name: {context_name}, timestamp_micros: {frame_timestamp_micros}'
                     savedetectedimagetofile(convertedframesdict[imagename], frameid, result, imagename, display_str, nameprefix, imagesavepath)
@@ -626,7 +666,7 @@ def evaluateWaymoValidationFramesAllcameraSubmission(PATH, model_path, config_pa
     submission.account_name = 'kaikai.liu@sjsu.edu'
     submission.authors.append('Kaikai Liu')
     submission.affiliation = 'San Jose State University'
-    submission.unique_method_name = nameprefix #'fake'
+    submission.unique_method_name = nameprefix #'fake' unique_method_name should not be too long
     submission.description = 'none'
     submission.method_link = "empty method"
     submission.sensor_type = submission_pb2.Submission.CAMERA_ALL
@@ -654,15 +694,25 @@ if __name__ == "__main__":
     print("Loading Waymo validation frames...")
     
     PATH = "/data/cmpe295-liu/Waymo/"
-    validation_folders = ["validation_0000"]#,"validation_0005"]
+    #validation_folders = ["validation_0000"]#,"validation_0005"]
     # ["validation_0007","validation_0006","validation_0005","validation_0004","validation_0003","validation_0002","validation_0001","validation_0000"]
-    #validation_folders = ["validation_0000", "validation_0001", "validation_0002","validation_0003", "validation_0004", "validation_0005", "validation_0006", "validation_0007"]
+    validation_folders = ["validation_0000", "validation_0001", "validation_0002","validation_0003", "validation_0004", "validation_0005", "validation_0006", "validation_0007"]
     #evaluateWaymoValidationFramesFakeSubmission(PATH, validation_folders, outputsubmissionfilepath, outputfile)
-    VisEnable=True #False #True
+    VisEnable=False #False #True
 
-    nameprefix="outputallcamera0526_detectron899k_val0"
+    #Detectron2
+    nameprefix="outputallcamera0528_detectron899k_valall"
     model_path='/home/010796032/MyRepo/Detectron2output/model_0899999.pth' #model_final.pth'
     config_path=''
     savepath='/home/010796032/MyRepo/myoutputs'
     outputsubmissionfilepath = os.path.join(savepath,nameprefix+".bin")#"/home/010796032/MyRepo/WaymoObjectDetection/output/"+nameprefix+".bin"
+    
+    #mmdetection
+    # nameprefix="outputallcamera0528_mmdet27_valall"
+    # model_path='/home/010796032/3DObject/mmdetection/waymococo_fasterrcnnr101train/epoch_27.pth' #model_final.pth'
+    # config_path='/home/010796032/3DObject/mmdetection/configs/faster_rcnn/faster_rcnn_r101_fpn_2x_coco.py'
+    # savepath='/home/010796032/MyRepo/myoutputs'
+    # outputsubmissionfilepath = os.path.join(savepath,nameprefix+".bin")#"/home/010796032/MyRepo/WaymoObjectDetection/output/"+nameprefix+".bin"
+    
+    
     evaluateWaymoValidationFramesAllcameraSubmission(PATH, model_path, config_path, validation_folders, outputsubmissionfilepath, VisEnable,savepath, nameprefix)
