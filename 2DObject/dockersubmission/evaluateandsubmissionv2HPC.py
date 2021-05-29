@@ -704,7 +704,7 @@ if __name__ == "__main__":
     VisEnable=False #False #True
 
     #Detectron2
-    nameprefix="outputallcamera0528_detectron899k_valall"
+    nameprefix="529dtrn899kvalall"
     model_path='/home/010796032/MyRepo/Detectron2output/model_0899999.pth' #model_final.pth'
     config_path=''
     savepath='/home/010796032/MyRepo/myoutputs'
