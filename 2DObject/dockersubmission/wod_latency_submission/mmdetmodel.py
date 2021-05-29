@@ -129,7 +129,7 @@ def run_model(**kwargs):
     # Run the model.
     frontimagekey=DATA_FIELDS[0]
     FRONT_IMAGE=kwargs[frontimagekey]
-    print(FRONT_IMAGE.size)
+    #print(FRONT_IMAGE.size)
     imageshape=FRONT_IMAGE.shape
     im_width=imageshape[1]#1920
     im_height=imageshape[0]#1280
