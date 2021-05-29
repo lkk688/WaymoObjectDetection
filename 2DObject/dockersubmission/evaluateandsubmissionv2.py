@@ -700,11 +700,11 @@ if __name__ == "__main__":
     PATH = "/DATA5T/Dataset/WaymoDataset/"
     outputfile = "/Developer/MyRepo/WaymoObjectDetection/output/output0525_detectron282k_valall.mp4"
     outputsubmissionfilepath = '/Developer/MyRepo/WaymoObjectDetection/output/output0525_detectron282k_valall.bin'
-    #validation_folders = ["validation_0007"]#,"validation_0005"]
+    validation_folders = ["validation_0000"]#,"validation_0005"]
     # ["validation_0007","validation_0006","validation_0005","validation_0004","validation_0003","validation_0002","validation_0001","validation_0000"]
-    validation_folders = ["validation_0000", "validation_0001", "validation_0002","validation_0003", "validation_0004", "validation_0005", "validation_0006", "validation_0007"]
+    #validation_folders = ["validation_0000", "validation_0001", "validation_0002","validation_0003", "validation_0004", "validation_0005", "validation_0006", "validation_0007"]
     #evaluateWaymoValidationFramesFakeSubmission(PATH, validation_folders, outputsubmissionfilepath, outputfile)
-    VisEnable=False #False #True
+    VisEnable=True #False #True
     #evaluateWaymoValidationFramesSubmission(PATH, validation_folders, outputsubmissionfilepath, VisEnable,outputfile)
     nameprefix="outputallcamera0526_detectron282k_val7"
     #outputfile = "/Developer/MyRepo/WaymoObjectDetection/output/"+nameprefix+"valall.mp4"#output0525_detectron282k_valall.mp4"
@@ -714,11 +714,11 @@ if __name__ == "__main__":
     savepath='/Developer/MyRepo/WaymoObjectDetection/output/'
 
 
-    nameprefix="529tfvalall"
-    outputsubmissionfilepath = "/Developer/MyRepo/WaymoObjectDetection/output/"+nameprefix+".bin"# output0525_detectron282k_valall.bin'
-    model_path='/Developer/MyRepo/mymodels/ssdres50model2/model2exported400k/saved_model'
+    nameprefix="529tf500kval0"
+    outputsubmissionfilepath = "/Developer/MyRepo/output/"+nameprefix+".bin"# output0525_detectron282k_valall.bin'
+    model_path='/Developer/MyRepo/mymodels/ssdres50model2/model2exported500k/saved_model'
     config_path=''
-    savepath='/Developer/MyRepo/WaymoObjectDetection/output/'
+    savepath='/Developer/MyRepo/output/'
     evaluateWaymoValidationFramesAllcameraSubmission(PATH, model_path, config_path, validation_folders, outputsubmissionfilepath, VisEnable,savepath, nameprefix)
 
     # waymovalidationframes = loadWaymoValidationFrames(PATH)
