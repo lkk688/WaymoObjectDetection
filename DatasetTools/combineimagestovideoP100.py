@@ -48,7 +48,7 @@ def saveallcameratovideo(PATH, outputfile):
     allcameras=["FRONT_IMAGE", "FRONT_LEFT_IMAGE", "FRONT_RIGHT_IMAGE", "SIDE_LEFT_IMAGE", "SIDE_RIGHT_IMAGE"]
 
     imagefiles_pattern=glob.glob(os.path.join(PATH, '*.jpg'))
-    totalimagefiles=len(imagefiles_pattern)/5
+    totalimagefiles=int(len(imagefiles_pattern)/5)
     print(f'Total image files: {totalimagefiles}')
     for fileidx in range(totalimagefiles):
         front_left_imagefile_path=os.path.join(PATH, str(fileidx)+'_'+allcameras[1]+".jpg")
@@ -82,8 +82,8 @@ def saveallcameratovideo(PATH, outputfile):
     out.release()
 
 if __name__ == "__main__":
-    outputfile='/Developer/MyRepo/output/outputallcamera0528_mmdet27_val012_combine.mp4'
-    PATH='/Developer/MyRepo/output/outputallcamera0528_mmdet27_val012'
+    outputfile='/Developer/MyRepo/output/529tf500kval0_combine.mp4'
+    PATH='/Developer/MyRepo/output/529tf500kval0/'
     #saveonecameratovideo(PATH, outputfile)
     saveallcameratovideo(PATH, outputfile)
 # for filename in glob.glob(os.path.join(PATH, '*.jpg')):
