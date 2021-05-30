@@ -57,6 +57,7 @@ def process_example(input_dir, output_dir):
   assert len(output) == 3
   assert set(output.keys()) == set(('boxes', 'scores', 'classes'))
   num_objs = output['boxes'].shape[0]
+  print(f'num_objs:{num_objs}')
   assert output['scores'].shape[0] == num_objs
   assert output['classes'].shape[0] == num_objs
 
@@ -71,13 +72,25 @@ def process_example(input_dir, output_dir):
   # Return the elapsed time of the run_model call.
   return toc - tic
 
+class args:
+  nameprefix="529dtrn899kvalall"
+  input_data_dir="/data/cmpe295-liu/Waymodicts/valdation/"
+  output_dir="/home/010796032/MyRepo/myoutputs/dictval/"
+  latency_result_file="/home/010796032/MyRepo/myoutputs/"+nameprefix+".txt"
 
 if __name__ == '__main__':
-  parser = argparse.ArgumentParser()
-  parser.add_argument('--input_data_dir', type=str, required=True)
-  parser.add_argument('--output_dir', type=str, required=True)
-  parser.add_argument('--latency_result_file', type=str, required=True)
-  args = parser.parse_args()
+  # parser = argparse.ArgumentParser()
+  # parser.add_argument('--input_data_dir', type=str, required=True)
+  # parser.add_argument('--output_dir', type=str, required=True)
+  # parser.add_argument('--latency_result_file', type=str, required=True)
+  # args = parser.parse_args()
+
+  
+  model_path='/home/010796032/MyRepo/Detectron2output/model_0899999.pth' #model_final.pth'
+  config_path=''
+  savepath='/home/010796032/MyRepo/myoutputs'
+  #outputsubmissionfilepath = os.path.join(savepath,args.nameprefix+".bin")#"/home/010796032/MyRepo/WaymoObjectDetection/output/"+nameprefix+".bin"
+  wod_latency_submission.setupmodeldir(model_path, config_path)
 
   # Run any user-specified initialization code for their submission.
   wod_latency_submission.initialize_model()
