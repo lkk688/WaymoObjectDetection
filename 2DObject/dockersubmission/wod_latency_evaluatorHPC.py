@@ -99,6 +99,7 @@ if __name__ == '__main__':
   # Iterate through the subdirectories for each frame.
   for context_name in os.listdir(args.input_data_dir):
     context_dir = os.path.join(args.input_data_dir, context_name)
+    print("context_dir:", context_dir)
     if not os.path.isdir(context_dir):
       continue
     for timestamp_micros in os.listdir(context_dir):

@@ -159,7 +159,7 @@ def extract_onesegment_todicts(fileidx, tfrecord_pathnames, step, save_folder):
 if __name__ == "__main__":
   #save validation folders to dict files
   #folders = ["validation_0000","validation_0001","validation_0002","validation_0003","validation_0004","validation_0005","validation_0006","validation_0007"]
-  folders = ["validation_0001"]
+  folders = ["validation_0005","validation_0006","validation_0007"]
   #folders = ["validation_0001","validation_0002","validation_0003","validation_0004","validation_0005","validation_0006","validation_0007"]
   root_path="/data/cmpe295-liu/Waymo"
   out_dir="/data/cmpe295-liu/Waymodicts/valdation"
