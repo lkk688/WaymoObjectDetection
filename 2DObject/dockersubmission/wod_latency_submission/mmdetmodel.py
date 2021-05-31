@@ -180,9 +180,9 @@ def run_model(**kwargs):
     classes=[]
     if num_box<1:
         return {
-            'boxes': [],
-            'scores': [],
-            'classes': [],
+            'boxes': np.array(outputboxes),
+            'scores': np.array(scores),
+            'classes': np.array(classes).astype(np.uint8),
         }
     else:
         for index_i in range(num_box):

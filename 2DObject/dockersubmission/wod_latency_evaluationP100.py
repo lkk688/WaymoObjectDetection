@@ -94,7 +94,7 @@ def process_allimages_example(input_dir, output_dir):
         assert len(output) == 3
         assert set(output.keys()) == set(('boxes', 'scores', 'classes'))
         num_objs = output['boxes'].shape[0]
-        #print(f'num_objs:{num_objs}')
+        print(f'num_objs:{num_objs}')
         assert output['scores'].shape[0] == num_objs
         assert output['classes'].shape[0] == num_objs
 
@@ -117,16 +117,15 @@ def process_allimages_example(input_dir, output_dir):
     return np.mean(latency_np)
 
 class args:
-    nameprefix = "531mmdet27valall"
-    input_data_dir = "/data/cmpe295-liu/Waymodicts/valdation/"
-    output_dir = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"/"
-    latency_result_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+".txt"
+    nameprefix = "531dtrn899kvalall"
+    input_data_dir = "/DATA5T/Dataset/Waymodicts/validation"
+    output_dir = "/Developer/MyRepo/output/"+nameprefix+"/"
+    latency_result_file = "/Developer/MyRepo/output/"+nameprefix+".txt"
     #detectron2 model
-    model_path = '/home/010796032/MyRepo/Detectron2output/model_0899999.pth'
+    model_path = '/Developer/MyRepo/mymodels/detectron2models/model_0899999.pth'
     config_path = ''
-    #mmdetection model
-    model_path = '/home/010796032/3DObject/mmdetection/waymococo_fasterrcnnr101train/epoch_27.pth'
-    config_path='/home/010796032/3DObject/mmdetection/configs/faster_rcnn/faster_rcnn_r101_fpn_2x_coco.py'
+
+
 
 if __name__ == '__main__':
     # parser = argparse.ArgumentParser()
@@ -135,8 +134,12 @@ if __name__ == '__main__':
     # parser.add_argument('--latency_result_file', type=str, required=True)
     # args = parser.parse_args()
 
+      # model_final.pth'
     # outputsubmissionfilepath = os.path.join(savepath,args.nameprefix+".bin")#"/home/010796032/MyRepo/WaymoObjectDetection/output/"+nameprefix+".bin"
     wod_latency_submission.setupmodeldir(args.model_path, args.config_path)
+
+    inputdirlist=os.listdir(args.input_data_dir)
+    print(f'Total number of context folders: {len(inputdirlist)}')#202
 
     # Run any user-specified initialization code for their submission.
     wod_latency_submission.initialize_model()
@@ -146,20 +149,21 @@ if __name__ == '__main__':
     # Iterate through the subdirectories for each frame.
     for context_name in os.listdir(args.input_data_dir):
         context_dir = os.path.join(args.input_data_dir, context_name)
-        context_latency = []
         print(f"index: {contextfileid}, context_dir:{context_dir}")
         contextfileid = contextfileid +1
+        context_latency = []
         if not os.path.isdir(context_dir):
             continue
         for timestamp_micros in os.listdir(context_dir):
             timestamp_dir = os.path.join(context_dir, timestamp_micros)
             if not os.path.isdir(timestamp_dir):
+                print("timestamp_dir is not dir")
                 continue
 
             out_dir = os.path.join(
                 args.output_dir, context_name, timestamp_micros)
             os.makedirs(out_dir, exist_ok=True)
-            #print('Processing', context_name, timestamp_micros)
+            #latencyresult = process_example(timestamp_dir, out_dir)
             latencyresult = process_allimages_example(timestamp_dir, out_dir)# process all cameras
             print(f'Processed timestamp_micros: {timestamp_micros}, latency: {latencyresult}')
             latencies.append(latencyresult)
@@ -167,6 +171,7 @@ if __name__ == '__main__':
         # converting list to array
         context_latency_np = np.array(context_latency)
         np.save(os.path.join(args.output_dir, context_name, 'latency.npy'), context_latency_np)
+        
 
     # Save all the latency values in a text file.
     with open(args.latency_result_file, 'w') as latency_file:
