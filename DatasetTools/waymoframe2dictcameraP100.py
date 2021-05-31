@@ -125,6 +125,7 @@ def extract_onesegment_todicts(fileidx, tfrecord_pathnames, step, save_folder):
         del frame
         del data
         del cameradict
+    del dataset
 
 
 # def saveonedictfile(data_files, fileidx, step, out_dir):
@@ -159,7 +160,7 @@ def extract_onesegment_todicts(fileidx, tfrecord_pathnames, step, save_folder):
 if __name__ == "__main__":
   #save validation folders to dict files
   #folders = ["validation_0000","validation_0001","validation_0002","validation_0003","validation_0004","validation_0005","validation_0006","validation_0007"]
-  folders = ["validation_0001"]
+  folders = ["validation_0007"]#,"validation_0004"]
   root_path="/DATA5T/Dataset/WaymoDataset/"
   out_dir="/DATA5T/Dataset/Waymodicts/validation"
   data_files = [path for x in folders for path in glob(os.path.join(root_path, x, "*.tfrecord"))]
