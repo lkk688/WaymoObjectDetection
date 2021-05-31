@@ -16,7 +16,7 @@ from waymo_open_dataset.utils import range_image_utils
 from waymo_open_dataset.utils import transform_utils
 
 
-#ref from https://github.com/waymo-research/waymo-open-dataset/blob/master/waymo_open_dataset/utils/frame_utils.py
+# ref from https://github.com/waymo-research/waymo-open-dataset/blob/master/waymo_open_dataset/utils/frame_utils.py
 def convert_frame_to_dict_cameras(frame):
     """Convert the frame proto into a dict of numpy arrays.
     The keys, shapes, and data types are:
@@ -87,8 +87,9 @@ def convert_frame_to_dict_cameras(frame):
 
 #from waymo_open_dataset import dataset_pb2 as open_dataset
 
+
 def extract_onesegment_todicts(fileidx, tfrecord_pathnames, step, save_folder):
-    out_dir=Path(save_folder)
+    out_dir = Path(save_folder)
 
     segment_path = tfrecord_pathnames[fileidx]
     c_start = time.time()
@@ -96,7 +97,7 @@ def extract_onesegment_todicts(fileidx, tfrecord_pathnames, step, save_folder):
         f'extracting {fileidx}, path: {segment_path}, currenttime: {c_start}')
 
     dataset = tf.data.TFRecordDataset(str(segment_path), compression_type='')
-    #framesdict = {}  # []
+    # framesdict = {}  # []
     for i, data in enumerate(dataset):
         if i % step != 0:  # Downsample
             continue
@@ -107,19 +108,19 @@ def extract_onesegment_todicts(fileidx, tfrecord_pathnames, step, save_folder):
         # get one frame
         # A unique name that identifies the frame sequence
         context_name = frame.context.name
-        #print('context_name:', context_name)#14824622621331930560_2395_420_2415_420, same to the tfrecord file name
+        # print('context_name:', context_name)#14824622621331930560_2395_420_2415_420, same to the tfrecord file name
         frame_timestamp_micros = str(frame.timestamp_micros)
-        #print(frame_timestamp_micros)
-        #context_name as the first level sub folder, frame_timestamp_micros as the second level sub folder
-        #one tf record file only has one context_name
+        # print(frame_timestamp_micros)
+        # context_name as the first level sub folder, frame_timestamp_micros as the second level sub folder
+        # one tf record file only has one context_name
         relative_filepath = '/'.join([context_name, frame_timestamp_micros])
         filepath = out_dir / relative_filepath
         filepath.mkdir(parents=True, exist_ok=True)
-        #each file os.path.join(input_dir, f'{field}.npy')
-        cameradict=convert_frame_to_dict_cameras(frame)
-        for key, npdata in cameradict.items():#5 cameras
-            filename=key+'.npy'
-            completepath=filepath / filename
+        # each file os.path.join(input_dir, f'{field}.npy')
+        cameradict = convert_frame_to_dict_cameras(frame)
+        for key, npdata in cameradict.items():  # 5 cameras
+            filename = key+'.npy'
+            completepath = filepath / filename
             np.save(completepath, npdata)
             print(f'Saved {completepath}')
         del frame
@@ -145,7 +146,7 @@ def extract_onesegment_todicts(fileidx, tfrecord_pathnames, step, save_folder):
 #     print(framedict['FRONT_IMAGE'].shape)
 #     convertedframesdict = {'key':key, 'context_name':context_name, 'framedict':framedict}
 #     Final_array.append(convertedframesdict)
-  
+
 #   second_time = time.time()
 #   print(f"Finished conversion, Execution time: { second_time - c_start }")  #Execution time: 555.8904404640198
 #   filename=str(fileidx)+'_'+context_name+'.npy'
@@ -154,27 +155,25 @@ def extract_onesegment_todicts(fileidx, tfrecord_pathnames, step, save_folder):
 #   #np.save(out_dir / filename, Final_array)#Execution time: 54.30716061592102, 25G
 #   filename=str(fileidx)+'_'+'step'+str(step)+'_'+context_name+'.npz'
 #   np.savez_compressed(out_dir / filename, Final_array)#Execution time: 579.5185077190399, 7G
-#   print(f"Finished np save, Execution time: { time.time() - second_time }") 
+#   print(f"Finished np save, Execution time: { time.time() - second_time }")
 
 if __name__ == "__main__":
-  #save validation folders to dict files
-  #folders = ["validation_0000","validation_0001","validation_0002","validation_0003","validation_0004","validation_0005","validation_0006","validation_0007"]
-  folders = ["validation_0005","validation_0006","validation_0007"]
-  #folders = ["validation_0001","validation_0002","validation_0003","validation_0004","validation_0005","validation_0006","validation_0007"]
-  root_path="/data/cmpe295-liu/Waymo"
-  out_dir="/data/cmpe295-liu/Waymodicts/valdation"
-  data_files = [path for x in folders for path in glob(os.path.join(root_path, x, "*.tfrecord"))]
-  print("totoal number of files:", len(data_files))#886
-  step=1
+    # save validation folders to dict files
+    #folders = ["validation_0000","validation_0001","validation_0002","validation_0003","validation_0004","validation_0005","validation_0006","validation_0007"]
+    folders = ["validation_0005", "validation_0006", "validation_0007"]
+    #folders = ["validation_0001","validation_0002","validation_0003","validation_0004","validation_0005","validation_0006","validation_0007"]
+    root_path = "/data/cmpe295-liu/Waymo"
+    out_dir = "/data/cmpe295-liu/Waymodicts/valdation"
+    data_files = [path for x in folders for path in glob(
+        os.path.join(root_path, x, "*.tfrecord"))]
+    print("totoal number of files:", len(data_files))  # 886
+    step = 1
 #   fileidx=1
 #   extract_onesegment_todicts(fileidx, data_files, step, out_dir)
-  for fileidx in range(len(data_files)):
-      #saveonedictfile(data_files, fileidx, step, out_dir)
-      extract_onesegment_todicts(fileidx, data_files, step, out_dir)
-  print("finished")
-  
-
-    
+    for fileidx in range(len(data_files)):
+        #saveonedictfile(data_files, fileidx, step, out_dir)
+        extract_onesegment_todicts(fileidx, data_files, step, out_dir)
+    print("finished")
 
     # for key, value in framedict.items():
     #   print(key)
