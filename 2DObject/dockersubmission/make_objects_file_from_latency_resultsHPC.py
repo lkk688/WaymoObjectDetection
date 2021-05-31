@@ -105,7 +105,7 @@ def make_object_list_from_subdir(np_dir,
   return obj_list
 
 class args:
-  nameprefix="529dtrn899kval"
+  nameprefix="530dtrn899kval"
 #   input_data_dir="/data/cmpe295-liu/Waymodicts/valdation/"
 #   output_dir="/home/010796032/MyRepo/myoutputs/dictval/"
 #   latency_result_file="/home/010796032/MyRepo/myoutputs/"+nameprefix+".txt"
