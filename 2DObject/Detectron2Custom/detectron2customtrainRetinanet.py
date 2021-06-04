@@ -193,7 +193,7 @@ if __name__ == "__main__":
     #cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml")  # Let training initialize from model zoo
     #cfg.MODEL.WEIGHTS = os.path.join('/home/010796032/PytorchWork', "fasterrcnn_x101_fpn_model_final_68b088.pkl")#using the local 
     #cfg.MODEL.WEIGHTS = os.path.join('/home/010796032/PytorchWork/output', "model_0079999.pth")
-    cfg.MODEL.WEIGHTS = os.path.join('/home/010796032/MyRepo/Detectron2output/retinanetmodel', "model_0199999.pth")#"model_0099999.pth")
+    cfg.MODEL.WEIGHTS = os.path.join('/home/010796032/MyRepo/Detectron2output/retinanetmodel', "model_0299999.pth")#"model_0099999.pth")
     #cfg.MODEL.WEIGHTS = os.path.join('/home/010796032/MyRepo/modelzoo/detectron2retinanet/', "model_final_280758.pkl")#"model_0439999.pth")
     cfg.SOLVER.IMS_PER_BATCH = 8 #4# 2 #4
     cfg.SOLVER.LR_SCHEDULER_NAME='WarmupCosineLR'

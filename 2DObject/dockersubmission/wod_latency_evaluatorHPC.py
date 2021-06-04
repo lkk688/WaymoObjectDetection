@@ -116,17 +116,29 @@ def process_allimages_example(input_dir, output_dir):
     latency_np=np.array(latency)
     return np.mean(latency_np)
 
+# class args:
+#     nameprefix = "531mmdet27valall"
+#     input_data_dir = "/data/cmpe295-liu/Waymodicts/valdation/"
+#     output_dir = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"/"
+#     latency_result_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+".txt"
+#     #detectron2 model
+#     # model_path = '/home/010796032/MyRepo/Detectron2output/model_0899999.pth'
+#     # config_path = ''
+#     #mmdetection model
+#     model_path = '/home/010796032/3DObject/mmdetection/waymococo_fasterrcnnr101train/epoch_27.pth'
+#     config_path='/home/010796032/3DObject/mmdetection/configs/faster_rcnn/faster_rcnn_r101_fpn_2x_coco.py'
+
 class args:
-    nameprefix = "531mmdet27valall"
+    nameprefix = "0603dtrn2valall"
     input_data_dir = "/data/cmpe295-liu/Waymodicts/valdation/"
     output_dir = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"/"
     latency_result_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+".txt"
     #detectron2 model
-    model_path = '/home/010796032/MyRepo/Detectron2output/model_0899999.pth'
-    config_path = ''
+    # model_path = '/home/010796032/MyRepo/Detectron2output/model_0899999.pth'
+    # config_path = ''
     #mmdetection model
-    model_path = '/home/010796032/3DObject/mmdetection/waymococo_fasterrcnnr101train/epoch_27.pth'
-    config_path='/home/010796032/3DObject/mmdetection/configs/faster_rcnn/faster_rcnn_r101_fpn_2x_coco.py'
+    model_path = '/home/010796032/MyRepo/Detectron2output/model_0899999.pth'  # model_final.pth'
+    config_path=''
 
 if __name__ == '__main__':
     # parser = argparse.ArgumentParser()
