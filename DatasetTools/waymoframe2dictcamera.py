@@ -160,10 +160,12 @@ def extract_onesegment_todicts(fileidx, tfrecord_pathnames, step, save_folder):
 if __name__ == "__main__":
     # save validation folders to dict files
     #folders = ["validation_0000","validation_0001","validation_0002","validation_0003","validation_0004","validation_0005","validation_0006","validation_0007"]
-    folders = ["validation_0005", "validation_0006", "validation_0007"]
+    #folders = ["validation_0005", "validation_0006", "validation_0007"]
     #folders = ["validation_0001","validation_0002","validation_0003","validation_0004","validation_0005","validation_0006","validation_0007"]
+    folders = ["testing_0001","testing_0002","testing_0003","testing_0004","testing_0005","testing_0006","testing_0007"]
     root_path = "/data/cmpe295-liu/Waymo"
-    out_dir = "/data/cmpe295-liu/Waymodicts/valdation"
+    #out_dir = "/data/cmpe295-liu/Waymodicts/valdation"
+    out_dir = "/data/cmpe295-liu/Waymodicts/testing"
     data_files = [path for x in folders for path in glob(
         os.path.join(root_path, x, "*.tfrecord"))]
     print("totoal number of files:", len(data_files))  # 886
