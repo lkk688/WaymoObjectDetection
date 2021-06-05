@@ -116,7 +116,7 @@ def process_allimages_example(input_dir, output_dir):
     latency_np=np.array(latency)
     return np.mean(latency_np)
 
-# class args:
+# class args:ls
 #     nameprefix = "531mmdet27valall"
 #     input_data_dir = "/data/cmpe295-liu/Waymodicts/valdation/"
 #     output_dir = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"/"
