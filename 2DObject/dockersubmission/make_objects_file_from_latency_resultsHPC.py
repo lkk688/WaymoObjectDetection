@@ -188,13 +188,99 @@ def make_frontcameraobject_list_from_subdir(np_dir,
 
     return obj_list
 
+def make_allcameraobject_list_from_subdir(np_dir,
+                                 frame_context_name,
+                                 frame_timestamp_micros):
+    #for all camera, we changed the individual boxes.npy, classes.npy, scores.npy to one allcameraresult.npy
+    #allcameraresult.npy uses camera name as the key, value is the result dict
+    # boxes = np.load(os.path.join(np_dir, 'boxes.npy'))
+    # classes = np.load(os.path.join(np_dir, 'classes.npy'))
+    # scores = np.load(os.path.join(np_dir, 'scores.npy'))
+    allcameraresult = np.load(os.path.join(np_dir, 'allcameraresult.npy'),  allow_pickle=True)
+    allcameraresult = allcameraresult.item()
+    #print(type(allcameraresult))
+
+    obj_list = []
+    for imagename in allcameras:#go through all cameras
+
+        resultdict=allcameraresult[imagename]#one camera
+        boxes = resultdict['boxes']
+        classes = resultdict['classes']
+        scores = resultdict['scores']
+
+        # Read the input fields file if it exists.
+        # input_fields = []
+        # input_field_path = os.path.join(np_dir, 'input_fields.txt')
+        # if os.path.isfile(input_field_path):
+        #     with open(input_field_path, 'r') as input_field_file:
+        #         input_fields = input_field_file.readlines()
+        input_fields = [imagename]#["FRONT_IMAGE"]# input_fields.txt is empty
+
+        num_objs = boxes.shape[0]
+        assert classes.shape[0] == num_objs
+        assert scores.shape[0] == num_objs
+
+        
+        for i in range(num_objs):
+            obj = metrics_pb2.Object()
+            obj.context_name = frame_context_name
+            obj.frame_timestamp_micros = frame_timestamp_micros
+            obj.score = scores[i]
+            obj.object.type = classes[i]
+
+            # Handle the box creation differently for 3D boxes (where the inner
+            # dimension is 7) and 2D boxes (where the inner dimension is 4).
+            if boxes.shape[1] == 7:
+                obj.object.box.center_x = boxes[i, 0]
+                obj.object.box.center_y = boxes[i, 1]
+                obj.object.box.center_z = boxes[i, 2]
+                obj.object.box.length = boxes[i, 3]
+                obj.object.box.width = boxes[i, 4]
+                obj.object.box.height = boxes[i, 5]
+                obj.object.box.heading = boxes[i, 6]
+            elif boxes.shape[1] == 4:
+                obj.object.box.center_x = boxes[i, 0]
+                obj.object.box.center_y = boxes[i, 1]
+                obj.object.box.length = boxes[i, 2]
+                obj.object.box.width = boxes[i, 3]
+
+                # For 2D detection objects, the camera name of the object proto comes from
+                # the camera whose image was used as input. Thus, the input_fields
+                # specified by the user are checked to ensure that they only used a single
+                # input and that the input was the RGB image from one of the cameras.
+                #print("input fields:", input_fields)
+                if len(input_fields) != 1:
+                    raise ValueError('Can only use one input when submitting 2D detection '
+                                    'results; instead was using:\n' +
+                                    '\n'.join(input_fields))
+                
+                input_field = input_fields[0]
+                if not input_field.endswith('_IMAGE'):
+                    raise ValueError('For 2D detection results, the input field should be '
+                                    'one of the camera images, but got ' + input_field)
+                obj.camera_name = dataset_pb2.CameraName.Name.Value(
+                    input_field[:-6]) #remove _IMAGE
+                print(f'obj camera name: {obj.camera_name}, input_field[:-6]: {input_field[:-6]}')#obj camera name: 1, input_field[:-6]: FRONT
+
+            # Run some checks to avoid adding invalid objects. These are the same checks
+            # used in metrics/tools/create_submission.cc
+            if (obj.score < 0.03 or obj.object.box.length < 0.01 or
+                obj.object.box.width < 0.01 or
+                    (obj.object.box.HasField('height') and obj.object.box.height < 0.01)):
+                print('Skipping invalid object', obj)
+                continue
+
+            obj_list.append(obj)
+
+    return obj_list
+
 class args:
     nameprefix = "531mmdet27valall"
 #   input_data_dir="/data/cmpe295-liu/Waymodicts/valdation/"
 #   output_dir="/home/010796032/MyRepo/myoutputs/dictval/"
 #   latency_result_file="/home/010796032/MyRepo/myoutputs/"+nameprefix+".txt"
     results_dir ="/home/010796032/MyRepo/myoutputs/531mmdet27valall/"# "/home/010796032/MyRepo/myoutputs/dictval/"
-    output_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"_dicvalfrontobjects"
+    output_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"_dicvalallcameraobjects"#"_dicvalfrontobjects"
 
 
 if __name__ == '__main__':
@@ -219,7 +305,7 @@ if __name__ == '__main__':
             print('Processing', context_name, timestamp_micros)
             # objects.objects.extend(make_object_list_from_subdir(
             #     timestamp_dir, context_name, int(timestamp_micros)))
-            objects.objects.extend(make_frontcameraobject_list_from_subdir(
+            objects.objects.extend(make_allcameraobject_list_from_subdir(
                 timestamp_dir, context_name, int(timestamp_micros)))
 
     print('Got ', len(objects.objects), 'objects')
