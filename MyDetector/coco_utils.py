@@ -160,6 +160,7 @@ def convert_to_coco_api(ds):
         img_dict['width'] = img.shape[-1]
         dataset['images'].append(img_dict)
         bboxes = targets["boxes"]
+        #print("Debug bboxes:", bboxes)# when bboxes is empty, this operation will have error.
         bboxes[:, 2:] -= bboxes[:, :2]
         bboxes = bboxes.tolist()
         labels = targets['labels'].tolist()
