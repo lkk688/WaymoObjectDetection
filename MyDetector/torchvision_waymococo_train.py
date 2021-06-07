@@ -125,16 +125,22 @@ class myCOCODataset(torch.utils.data.Dataset):
         target_labels = []
         target_areas = []
         target_crowds = []
-        if num_objs>0:
-            for i in range(num_objs):
-                xmin = targets[i]['bbox'][0]
-                ymin = targets[i]['bbox'][1]
-                xmax = xmin + targets[i]['bbox'][2]
-                ymax = ymin + targets[i]['bbox'][3]
+        for i in range(num_objs):
+            xmin = targets[i]['bbox'][0]
+            ymin = targets[i]['bbox'][1]
+            width=targets[i]['bbox'][2]
+            xmax = xmin + width
+            height = targets[i]['bbox'][3]
+            ymax = ymin + height
+            if xmin<=xmax and ymin<=ymax and xmin>=0 and ymin>=0 and width>1 and height>1:
                 target_bbox.append([xmin, ymin, xmax, ymax])
                 target_labels.append(targets[i]['category_id'])
                 target_crowds.append(targets[i]['iscrowd'])
                 target_areas.append(targets[i]['area'])
+        num_objs=len(target_bbox)
+        #print("target_bbox len:", num_objs)
+        if num_objs>0:
+            #print("target_labels:", target_labels)
             target['boxes'] = torch.as_tensor(target_bbox, dtype=torch.float32)
             # Labels int value for class
             target['labels'] = torch.as_tensor(np.array(target_labels), dtype=torch.int64)
@@ -239,12 +245,30 @@ def load_previous_object_detection_model(num_classes, modelpath):
 
     return model
 
+def load_previous_object_detection_model_new(num_classes, modelpath, new_num_classes):
+    model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
+    # get the number of input features for the classifier
+    in_features = model.roi_heads.box_predictor.cls_score.in_features
+    # replace the pre-trained head with a new one
+    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
+    
+    pretrained= True
+    if pretrained:
+        model.load_state_dict(torch.load(modelpath))#'./saved_models2/model_9.pth'))
+
+    # get the number of input features for the classifier
+    in_features = model.roi_heads.box_predictor.cls_score.in_features
+    # replace the pre-trained head with a new one
+    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, new_num_classes)
+
+    return model
+
 if __name__ == '__main__':
     # path to your own data and coco file
-    #data_root = '/data/cmpe249-f20/WaymoCOCOMulti/trainvalall/'
+    data_root = '/data/cmpe249-f20/WaymoCOCOMulti/trainvalall/'
 
-    data_root = '/DATA5T/Dataset/WaymoCOCO/'
-    ann_file = data_root + 'annotations_train20new.json'
+    #data_root = '/DATA5T/Dataset/WaymoCOCO/'
+    ann_file = data_root + 'annotations_train684step8allobject.json'#'annotations_train20new.json'
     # create own Dataset
     mywaymodataset = myCOCODataset(root=data_root,  
                           annotation=ann_file,
@@ -287,10 +311,15 @@ if __name__ == '__main__':
     #     annotations = [{k: v.to(device) for k, v in t.items()} for t in annotations]
     #     print(annotations)
 
-    num_classes=4
-    previous_model_path = '/Developer/MyRepo/mymodels/torchfasterrcnn/model_27.pth'
-    print("Loading previous model: " + previous_model_path)
-    #model = get_previous_object_detection_model(num_classes, previous_model_path)
+    num_classes=5 # ['unknown', 'vehicle', 'pedestrian', 'sign', 'cyclist']
+    previous_num_classes = 4 #Unknown:0, Vehicles: 1, Pedestrians: 2, Cyclists: 3, Signs (removed)
+    #previous_model_path = '/Developer/MyRepo/mymodels/torchfasterrcnn/model_27.pth'
+    previous_model_path = '/home/010796032/Waymo/saved_models_py4/model_27.pth'
+    #print("Loading previous model: " + previous_model_path)
+    #model = get_object_detection_model(num_classes, previous_model_path)#(num_classes, previous_model_path)
+    #model = load_previous_object_detection_model_new(previous_num_classes, previous_model_path, num_classes)
+    #continue training based on the same model
+    previous_model_path = '/home/010796032/MyRepo/Torchoutput/fasterrcnntrain/model_0.pth'
     model = load_previous_object_detection_model(num_classes, previous_model_path)
 
     # select device (whether GPU or CPU)
@@ -312,7 +341,7 @@ if __name__ == '__main__':
 
     import sys
     num_epochs=10
-    MODELWORK_DIR = "/Developer/MyRepo/mymodels/torchfasterrcnn/newtrain"
+    MODELWORK_DIR = "/home/010796032/MyRepo/Torchoutput/fasterrcnntrain"
     CHECK_FOLDER = os.path.isdir(MODELWORK_DIR)
     # If folder doesn't exist, then create it.
     if not CHECK_FOLDER:

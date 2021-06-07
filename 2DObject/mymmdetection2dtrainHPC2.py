@@ -42,7 +42,7 @@ cfg.data.test.img_prefix =  ''
 
 cfg.data.train.type = 'CocoDataset'
 cfg.data.train.data_root = data_root 
-cfg.data.train.ann_file = data_root + 'annotations_trainallnew.json'#'annotations_train200new.json'
+cfg.data.train.ann_file = data_root + 'annotations_train684step8allobject.json'#'annotations_trainallnew.json'#'annotations_train200new.json'
 cfg.data.train.img_prefix = ''
 
 cfg.data.val.type = 'CocoDataset'
@@ -59,7 +59,7 @@ cfg.model.roi_head.bbox_head.num_classes = len(classes)# 10
 # We can still use the pre-trained Mask RCNN model though we do not need to
 # use the mask branch
 cfg.load_from = checkpoint #
-cfg.resume_from = workdir + "/epoch_26.pth"
+cfg.resume_from = workdir + "/epoch_27.pth"
 
 # Set up working dir to save files and logs.
 cfg.work_dir = workdir #
