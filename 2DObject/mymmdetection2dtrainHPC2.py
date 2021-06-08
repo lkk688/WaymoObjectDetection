@@ -59,7 +59,7 @@ cfg.model.roi_head.bbox_head.num_classes = len(classes)# 10
 # We can still use the pre-trained Mask RCNN model though we do not need to
 # use the mask branch
 cfg.load_from = checkpoint #
-cfg.resume_from = workdir + "/epoch_27.pth"
+cfg.resume_from = workdir + "/epoch_34.pth"
 
 # Set up working dir to save files and logs.
 cfg.work_dir = workdir #

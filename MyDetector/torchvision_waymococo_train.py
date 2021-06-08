@@ -319,7 +319,7 @@ if __name__ == '__main__':
     #model = get_object_detection_model(num_classes, previous_model_path)#(num_classes, previous_model_path)
     #model = load_previous_object_detection_model_new(previous_num_classes, previous_model_path, num_classes)
     #continue training based on the same model
-    previous_model_path = '/home/010796032/MyRepo/Torchoutput/fasterrcnntrain/model_0.pth'
+    previous_model_path = '/home/010796032/MyRepo/Torchoutput/fasterrcnntrain/model_5.pth'
     model = load_previous_object_detection_model(num_classes, previous_model_path)
 
     # select device (whether GPU or CPU)
@@ -340,7 +340,7 @@ if __name__ == '__main__':
     #evaluate(model, data_loader_test, device=device)
 
     import sys
-    num_epochs=10
+    num_epochs=20
     MODELWORK_DIR = "/home/010796032/MyRepo/Torchoutput/fasterrcnntrain"
     CHECK_FOLDER = os.path.isdir(MODELWORK_DIR)
     # If folder doesn't exist, then create it.
