@@ -5,6 +5,7 @@ from pathlib import Path
 import os
 import time
 from glob import glob
+from os import path
 # from __future__ import division
 # from __future__ import print_function
 
@@ -121,8 +122,11 @@ def extract_onesegment_todicts(fileidx, tfrecord_pathnames, step, save_folder):
         for key, npdata in cameradict.items():  # 5 cameras
             filename = key+'.npy'
             completepath = filepath / filename
-            np.save(completepath, npdata)
-            print(f'Saved {completepath}')
+            if path.exists(completepath):
+                print(f'File path already exists: {completepath}')
+            else:
+                np.save(completepath, npdata)
+                print(f'Saved {completepath}')
         del frame
         del data
         del cameradict
@@ -162,7 +166,8 @@ if __name__ == "__main__":
     #folders = ["validation_0000","validation_0001","validation_0002","validation_0003","validation_0004","validation_0005","validation_0006","validation_0007"]
     #folders = ["validation_0005", "validation_0006", "validation_0007"]
     #folders = ["validation_0001","validation_0002","validation_0003","validation_0004","validation_0005","validation_0006","validation_0007"]
-    folders = ["testing_0001","testing_0002","testing_0003","testing_0004","testing_0005","testing_0006","testing_0007"]
+    #folders = ["testing_0001","testing_0002","testing_0003","testing_0004","testing_0005","testing_0006","testing_0007"]
+    folders = ["testing_0007"]
     root_path = "/data/cmpe295-liu/Waymo"
     #out_dir = "/data/cmpe295-liu/Waymodicts/valdation"
     out_dir = "/data/cmpe295-liu/Waymodicts/testing"

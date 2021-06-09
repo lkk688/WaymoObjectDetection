@@ -23,6 +23,8 @@ import numpy as np
 
 import wod_latency_submission
 
+from os import path
+
 
 def process_example(input_dir, output_dir):
     """Process a single example, save its outputs, and return the latency.
@@ -161,6 +163,9 @@ if __name__ == '__main__':
         context_latency = []
         print(f"index: {contextfileid}, context_dir:{context_dir}")
         contextfileid = contextfileid +1
+        if path.exists(os.path.join(args.output_dir, context_name, 'latency.npy')):
+            print(f'Latency file already exist')
+            continue
         if not os.path.isdir(context_dir):
             continue
         for timestamp_micros in os.listdir(context_dir):

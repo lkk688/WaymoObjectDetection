@@ -283,7 +283,7 @@ def make_allcameraobject_list_from_subdir(np_dir,
 #     output_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"_dicvalallcameraobjects"#"_dicvalfrontobjects"
 
 class args:
-    nameprefix = "0603dtrn2valall"
+    nameprefix = "609mmdet35testall"#"609dtrn2valall"# "609mmdet35valall"#"0603dtrn2valall"
     results_dir = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"/"
     output_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"_dicvalallcameraobjects"#"_dicvalfrontobjects"
 

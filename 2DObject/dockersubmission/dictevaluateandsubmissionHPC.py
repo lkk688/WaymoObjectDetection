@@ -69,13 +69,13 @@ def createsubmissionfromobject(objects, outputsubmissionfilepath, prefix):
 if __name__ == "__main__":
     #test the above functions: convert a Frame proto into a dictionary
     #convert_frame_to_dict
-    base_dir="/data/cmpe249-f20/WaymoKittitMulti/validationalldicts"
-    base_dir = Path(base_dir)
-    filename="0_step1_10203656353524179475_7625_000_7645_000.npz"
+    # base_dir="/data/cmpe249-f20/WaymoKittitMulti/validationalldicts"
+    # base_dir = Path(base_dir)
+    # filename="0_step1_10203656353524179475_7625_000_7645_000.npz"
 
     #loadonedictfile(base_dir, filename)# load our own created dictionary file (compressed)
 
-    nameprefix = "531mmdet27valall"#"0603dtrn2valall"
+    nameprefix = "609dtrn2valall"#"609mmdet35valall"#"531mmdet27valall"#"0603dtrn2valall"
     objectfilepath = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"_dicvalallcameraobjects"
     resultobjects=loadcreatedobjectfiles(objectfilepath)
     outputsubmissionfilepath="/home/010796032/MyRepo/myoutputs/"+nameprefix+"_dicvalallcamerasubmission.bin"
