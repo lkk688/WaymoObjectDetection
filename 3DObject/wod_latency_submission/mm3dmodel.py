@@ -28,13 +28,19 @@ DATA_FIELDS = [lidar_name + '_' + LIDAR_FIELD for lidar_name in LIDAR_NAMES]
 # Global variables that hold the models and configurations.
 model = None
 
+# class kittiargs:
+#     modelname = 'kitti'#not used here
+#     use_cuda = True
+#     basefolder = '/Developer/3DObject/mmdetection3d/'
+#     configfile=basefolder+'configs/pointpillars/hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class.py'
+#     checkpoint = basefolder+ 'myresults/epoch_120.pth'
+
 class kittiargs:
     modelname = 'kitti'#not used here
     use_cuda = True
-    basefolder = '/Developer/3DObject/mmdetection3d/'
-    configfile=basefolder+'configs/pointpillars/hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class.py'
-    checkpoint = basefolder+ 'myresults/epoch_120.pth'
-
+    basefolder = '/Developer/MyRepo/mymodels/mypointpillar_waymoD5trans_4class/'
+    configfile='/home/mymmdetection3d/configs/pointpillars/myhv_pointpillars_secfpn_sbn_2x16_2x_waymo-3d-4class.py'#basefolder+'configs/pointpillars/hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class.py'
+    checkpoint = basefolder+'epoch_94.pth'
 
 def initialize_model():
   """Method that will be called by the evaluation script to load the model and weights.

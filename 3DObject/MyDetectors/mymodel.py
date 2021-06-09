@@ -31,7 +31,7 @@ model = None
 class kittiargs:
     modelname = 'kitti'#not used here
     use_cuda = True
-    basefolder = '/Developer/3DObject/mmdetection3d/'
+    basefolder = '/Developer/3DObject/mmdetection3d-backup/'#'/Developer/3DObject/mmdetection3d/'
     configfile=basefolder+'configs/pointpillars/hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class.py'
     checkpoint = basefolder+ 'myresults/epoch_120.pth'
 

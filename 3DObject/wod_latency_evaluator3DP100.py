@@ -129,7 +129,7 @@ def process_allimages_example(input_dir, output_dir):
 #     config_path=''
 
 class args:
-    nameprefix = "608mm3dkittival0"
+    nameprefix = "608mm3dkittivalall"
     input_data_dir = "/DATA5T/HPC295Data/Waymodicts/valdation/"
     output_dir = "/Developer/MyRepo/3doutput/"+nameprefix+"/"
     latency_result_file = "/Developer/MyRepo/3doutput/"+nameprefix+".txt"
