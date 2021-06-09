@@ -24,7 +24,7 @@ classes=('vehicle', 'pedestrian', 'sign', 'cyclist')
 aug = None
 
 model_dir='/Developer/MyRepo/mymodels/detectron2models/model_0819999.pth'
-modelname = 'faster_rcnn_X_101_32x8d_FPN_3x'
+modelname = 'retinanet_R_50_FPN_3x'#'faster_rcnn_X_101_32x8d_FPN_3x'
 config="COCO-Detection/"+modelname+".yaml"
 from os import path
 def setupmodeldir(model_path, config_path=''):
@@ -63,10 +63,12 @@ def initialize_model():
     #cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml")  # Let training initialize from model zoo
     cfg.MODEL.WEIGHTS = model_dir #os.path.join(model_dir, modelfilename) #model_0159999.pth
     if os.path.isfile(cfg.MODEL.WEIGHTS) == False:
+        print("load checkpoint from model zoo")
         cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-Detection/"+modelname+".yaml")  # Let training initialize from model zoo
     else:
         cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 512#128   # faster, and good enough for this toy dataset (default: 512)
         cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(classes)  # Kitti has 9 classes (including donot care)
+    
     #self.cfg.MODEL.WEIGHTS = os.path.join('/home/010796032/PytorchWork/output_uav', "model_0119999.pth") #model_0159999.pth
     #cfg.MODEL.WEIGHTS = os.path.join('/home/010796032/PytorchWork', "fasterrcnn_x101_fpn_model_final_68b088.pkl")#using the local downloaded model
     cfg.SOLVER.IMS_PER_BATCH = 2

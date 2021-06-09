@@ -117,8 +117,8 @@ def process_allimages_example(input_dir, output_dir):
     return np.mean(latency_np)
 
 class args:
-    nameprefix = "609mmdet35valall"
-    input_data_dir = "/data/cmpe295-liu/Waymodicts/valdation/"
+    nameprefix = "609mmdet35testall"
+    input_data_dir = "/data/cmpe295-liu/Waymodicts/testing/"
     output_dir = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"/"
     latency_result_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+".txt"
     #detectron2 model
