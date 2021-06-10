@@ -24,7 +24,7 @@ classes=('vehicle', 'pedestrian', 'sign', 'cyclist')
 aug = None
 
 model_dir='/Developer/MyRepo/mymodels/detectron2models/model_0819999.pth'
-modelname = 'retinanet_R_50_FPN_3x'#'faster_rcnn_X_101_32x8d_FPN_3x'
+modelname = 'faster_rcnn_X_101_32x8d_FPN_3x'#'retinanet_R_50_FPN_3x'#'faster_rcnn_X_101_32x8d_FPN_3x'
 config="COCO-Detection/"+modelname+".yaml"
 from os import path
 def setupmodeldir(model_path, config_path=''):

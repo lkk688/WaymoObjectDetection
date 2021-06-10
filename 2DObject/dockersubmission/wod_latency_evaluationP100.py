@@ -117,12 +117,14 @@ def process_allimages_example(input_dir, output_dir):
     return np.mean(latency_np)
 
 class args:
-    nameprefix = "531dtrn899kvalall"
-    input_data_dir = "/DATA5T/Dataset/Waymodicts/validation"
+    nameprefix = "610tf2testall"#"609tf2"#"531dtrn899kvalall"
+    input_data_dir = "/DATA5T/HPC295Data/Waymodicts/testing/"#"/DATA5T/Dataset/Waymodicts/validation"
     output_dir = "/Developer/MyRepo/output/"+nameprefix+"/"
     latency_result_file = "/Developer/MyRepo/output/"+nameprefix+".txt"
-    #detectron2 model
-    model_path = '/Developer/MyRepo/mymodels/detectron2models/model_0899999.pth'
+    #tf2model
+    model_path = '/Developer/MyRepo/mymodels/model3exported523k/saved_model'
+    # #detectron2 model
+    # model_path = '/Developer/MyRepo/mymodels/detectron2models/model_0899999.pth'
     config_path = ''
 
 

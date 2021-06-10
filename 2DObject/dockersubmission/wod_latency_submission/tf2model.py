@@ -102,7 +102,7 @@ def run_model(**kwargs):
     # Run the model.
     frontimagekey=DATA_FIELDS[0]
     FRONT_IMAGE=kwargs[frontimagekey]
-    print(FRONT_IMAGE.size)
+    #print(FRONT_IMAGE.size)
     imageshape=FRONT_IMAGE.shape
     im_width=imageshape[1]#1920
     im_height=imageshape[0]#1280
@@ -132,15 +132,15 @@ def run_model(**kwargs):
         # boxes[:, 3] = (pred_boxes[:, 2] - pred_boxes[:, 0]) * im_height
 
         return {
-            'boxes': boxes,
-            'scores': pred_score,
-            'classes': pred_class,
+            'boxes':  np.array(boxes),
+            'scores': np.array(pred_score),
+            'classes': np.array(pred_class).astype(np.uint8),
         }
     else:#empty
         return {
-            'boxes': pred_boxes,
-            'scores': pred_score,
-            'classes': pred_class,
+            'boxes': np.array(pred_boxes),
+            'scores': np.array(pred_score),
+            'classes': np.array(pred_class).astype(np.uint8),
         }
 
     # inp_tensor = tf.convert_to_tensor(
