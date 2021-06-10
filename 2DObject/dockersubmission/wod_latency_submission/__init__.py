@@ -23,7 +23,7 @@
 # run_model = detectron2model.run_model
 # DATA_FIELDS = detectron2model.DATA_FIELDS
 
-Modelname="detectron2"
+Modelname="tf2lite"
 if Modelname=="detectron2":
     from . import detectron2model
     initialize_model = detectron2model.initialize_model
@@ -42,3 +42,15 @@ elif Modelname=="tf2od":
     run_model = tf2model.run_model
     DATA_FIELDS = tf2model.DATA_FIELDS
     setupmodeldir = tf2model.setupmodeldir
+elif Modelname=="tf2lite":
+    from . import tf2litemodel
+    initialize_model = tf2litemodel.initialize_model
+    run_model = tf2litemodel.run_model
+    DATA_FIELDS = tf2litemodel.DATA_FIELDS
+    setupmodeldir = tf2litemodel.setupmodeldir
+elif Modelname=="torchvision":
+    from . import torchvisionmodel
+    initialize_model = torchvisionmodel.initialize_model
+    run_model = torchvisionmodel.run_model
+    DATA_FIELDS = torchvisionmodel.DATA_FIELDS
+    setupmodeldir = torchvisionmodel.setupmodeldir

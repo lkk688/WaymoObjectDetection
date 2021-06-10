@@ -3,17 +3,19 @@ import os
 #from . import TF2Detector
 
 import numpy as np
-from object_detection.builders import model_builder
-from object_detection.utils import config_util
-import tensorflow as tf
+#pip3 install --extra-index-url https://google-coral.github.io/py-repo/ tflite_runtime
+#Successfully installed tflite-runtime-2.5.0
+#import tflite_runtime.interpreter as tflite
 
+import tensorflow as tf
 
 
 # Global variables that hold the models
 model = None
+input_details = None
 DATA_FIELDS = ['FRONT_IMAGE']
 FILTERthreshold=0.2
-model_dir = '/Developer/MyRepo/mymodels/tf_ssdresnet50_output/exported130/saved_model'
+model_dir = '/home/010796032/MyRepo/mymodels/model3exported523ktflitemodel.tflite'
 config = ''#Use optional load from checkpoint
 from os import path
 def setupmodeldir(model_path, config_path=''):
@@ -36,9 +38,21 @@ def initialize_model():
     #model_dir = '/Developer/MyRepo/mymodels/tf_ssdresnet50_output/exported130/saved_model'
     #load saved model
     global model
-    model = tf.saved_model.load(model_dir)
-    print(model.signatures['serving_default'].inputs)
-    print(model.signatures['serving_default'].output_shapes)
+    # Load TFLite model and allocate tensors.
+    model = tf.lite.Interpreter(model_path=model_dir)
+    #model = tflite.Interpreter(model_path=model_dir)
+    model.allocate_tensors()
+    # Get input tensor details
+    global input_details
+    input_details = model.get_input_details()
+    print(input_details)
+    output_details = model.get_output_details()
+    print(output_details)
+    print("tflite model type:", input_details[0]['dtype'])
+
+    # model = tf.saved_model.load(model_dir)
+    # print(model.signatures['serving_default'].inputs)
+    # print(model.signatures['serving_default'].output_shapes)
 
     # configs = config_util.get_configs_from_pipeline_file(
     #     os.path.join(model_dir, 'pipeline.config'))
@@ -88,6 +102,11 @@ def postfilter(boxes, classes, scores, threshold):
         pred_class = classes[:pred_t+1]
     return pred_boxes, pred_class, pred_score
 
+def get_output_tensor(interpreter, index):
+    """Returns the output tensor at the given index."""
+    output_details = interpreter.get_output_details()[index]
+    tensor = np.squeeze(interpreter.get_tensor(output_details['index']))
+    return tensor
 
 # BEGIN-INTERNAL
 # pylint: disable=invalid-name
@@ -107,16 +126,25 @@ def run_model(**kwargs):
     im_width=imageshape[1]#1920
     im_height=imageshape[0]#1280
     input_tensor = np.expand_dims(FRONT_IMAGE, 0)
-    detections = model(input_tensor)
+    #input_data = np.expand_dims(img, axis=0)
+    input_data = (np.float32(input_tensor) - 127.5) / 127.5 # floating model
+    model.set_tensor(input_details[0]['index'], input_data)
 
-    pred_boxes = detections['detection_boxes'][0].numpy() #xyxy type [0.26331702, 0.20630795, 0.3134004 , 0.2257505 ], [ymin, xmin, ymax, xmax]
-    #print(boxes)
-    pred_class = detections['detection_classes'][0].numpy().astype(np.uint8)#.astype(np.int32)
-    #print(classes)
-    pred_score = detections['detection_scores'][0].numpy() #decreasing order
-    
+    model.invoke()
+
+    # output_data = model.get_tensor(output_details[0]['index'])
+    # print(output_data)
+    # results = np.squeeze(output_data)
+    # print(results)
+
+    # Get all output details
+    boxes = get_output_tensor(model, 0)
+    classes = get_output_tensor(model, 1)
+    scores = get_output_tensor(model, 2)
+    count = int(get_output_tensor(model, 3))
+
     #Post filter based on threshold
-    pred_boxes, pred_class, pred_score = postfilter(pred_boxes, pred_class, pred_score, FILTERthreshold)
+    pred_boxes, pred_class, pred_score = postfilter(boxes, classes, scores, FILTERthreshold)
     if len(pred_class)>0:
         #pred_class = [i-1 for i in list(pred_class)] # index starts with 1, 0 is the background in the tensorflow
         #normalized [ymin, xmin, ymax, xmax] to (center_x, center_y, width, height) in image size
@@ -132,15 +160,15 @@ def run_model(**kwargs):
         # boxes[:, 3] = (pred_boxes[:, 2] - pred_boxes[:, 0]) * im_height
 
         return {
-            'boxes': boxes,
-            'scores': pred_score,
-            'classes': pred_class,
+            'boxes':  np.array(boxes),
+            'scores': np.array(pred_score),
+            'classes': np.array(pred_class).astype(np.uint8),
         }
     else:#empty
         return {
-            'boxes': pred_boxes,
-            'scores': pred_score,
-            'classes': pred_class,
+            'boxes':  np.array(boxes),
+            'scores': np.array(pred_score),
+            'classes': np.array(pred_class).astype(np.uint8),
         }
 
     # inp_tensor = tf.convert_to_tensor(
