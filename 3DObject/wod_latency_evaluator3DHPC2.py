@@ -23,8 +23,6 @@ import numpy as np
 
 import wod_latency_submission
 
-from os import path
-
 
 def process_example(input_dir, output_dir):
     """Process a single example, save its outputs, and return the latency.
@@ -119,28 +117,25 @@ def process_allimages_example(input_dir, output_dir):
     return np.mean(latency_np)
 
 # class args:
-#     nameprefix = "609mmdet35testall"
-#     input_data_dir = "/data/cmpe295-liu/Waymodicts/testing/"
+#     nameprefix = "0603dtrn2valall"
+#     input_data_dir = "/data/cmpe295-liu/Waymodicts/valdation/"
 #     output_dir = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"/"
 #     latency_result_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+".txt"
 #     #detectron2 model
 #     # model_path = '/home/010796032/MyRepo/Detectron2output/model_0899999.pth'
 #     # config_path = ''
 #     #mmdetection model
-#     model_path = '/home/010796032/3DObject/mmdetection/waymococo_fasterrcnnr101train/epoch_35.pth'#epoch_27.pth
-#     config_path='/home/010796032/3DObject/mmdetection/configs/faster_rcnn/faster_rcnn_r101_fpn_2x_coco.py'
+#     model_path = '/home/010796032/MyRepo/Detectron2output/model_0899999.pth'  # model_final.pth'
+#     config_path=''
 
 class args:
-    nameprefix = "609dtrn2testall"
-    input_data_dir = "/data/cmpe295-liu/Waymodicts/testing/"#input_data_dir = "/data/cmpe295-liu/Waymodicts/valdation/"
+    nameprefix = "609mm3d3classvalall"
+    input_data_dir = "/data/cmpe295-liu/Waymodicts/valdation/"
     output_dir = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"/"
     latency_result_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+".txt"
-    #detectron2 model
-    # model_path = '/home/010796032/MyRepo/Detectron2output/model_0899999.pth'
+
+    model_path = '/home/010796032/3DObject/mymmdetection3d/mypointpillar_waymo4ctrans/epoch_65.pth'
     # config_path = ''
-    #mmdetection model
-    model_path = '/home/010796032/MyRepo/Detectron2output/model_0899999.pth'  # model_final.pth'
-    config_path=''
 
 if __name__ == '__main__':
     # parser = argparse.ArgumentParser()
@@ -150,10 +145,11 @@ if __name__ == '__main__':
     # args = parser.parse_args()
 
     # outputsubmissionfilepath = os.path.join(savepath,args.nameprefix+".bin")#"/home/010796032/MyRepo/WaymoObjectDetection/output/"+nameprefix+".bin"
-    wod_latency_submission.setupmodeldir(args.model_path, args.config_path)
+    #wod_latency_submission.setupmodeldir(args.model_path, args.config_path)
 
     # Run any user-specified initialization code for their submission.
     wod_latency_submission.initialize_model()
+    print("Model initialized")
 
     latencies = []
     contextfileid = 0
@@ -163,9 +159,6 @@ if __name__ == '__main__':
         context_latency = []
         print(f"index: {contextfileid}, context_dir:{context_dir}")
         contextfileid = contextfileid +1
-        if path.exists(os.path.join(args.output_dir, context_name, 'latency.npy')):
-            print(f'Latency file already exist')
-            continue
         if not os.path.isdir(context_dir):
             continue
         for timestamp_micros in os.listdir(context_dir):
@@ -177,7 +170,7 @@ if __name__ == '__main__':
                 args.output_dir, context_name, timestamp_micros)
             os.makedirs(out_dir, exist_ok=True)
             #print('Processing', context_name, timestamp_micros)
-            latencyresult = process_allimages_example(timestamp_dir, out_dir)# process all cameras
+            latencyresult = process_example(timestamp_dir, out_dir)# process lidar
             print(f'Processed timestamp_micros: {timestamp_micros}, latency: {latencyresult}')
             latencies.append(latencyresult)
             context_latency.append(latencyresult)
