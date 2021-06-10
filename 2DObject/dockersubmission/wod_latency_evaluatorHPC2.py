@@ -128,8 +128,21 @@ def process_allimages_example(input_dir, output_dir):
 #     model_path = '/home/010796032/3DObject/mmdetection/waymococo_fasterrcnnr101train/epoch_35.pth'#epoch_27.pth
 #     config_path='/home/010796032/3DObject/mmdetection/configs/faster_rcnn/faster_rcnn_r101_fpn_2x_coco.py'
 
+# class args:
+#     nameprefix = "609dtrn2valall"
+#     input_data_dir = "/data/cmpe295-liu/Waymodicts/valdation/"
+#     output_dir = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"/"
+#     latency_result_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+".txt"
+#     #detectron2 model
+#     # model_path = '/home/010796032/MyRepo/Detectron2output/model_0899999.pth'
+#     # config_path = ''
+#     #mmdetection model
+#     #model_path = '/home/010796032/MyRepo/Detectron2output/model_0899999.pth'  # model_final.pth'
+#     model_path = '/home/010796032/MyRepo/Detectron2output/retinanetmodel/model_0559999.pth'
+#     config_path="COCO-Detection/retinanet_R_50_FPN_3x.yaml"#+#modelname+".yaml"
+
 class args:
-    nameprefix = "609dtrn2valall"
+    nameprefix = "609torchvisionvalall"
     input_data_dir = "/data/cmpe295-liu/Waymodicts/valdation/"
     output_dir = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"/"
     latency_result_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+".txt"
@@ -138,10 +151,17 @@ class args:
     # config_path = ''
     #mmdetection model
     #model_path = '/home/010796032/MyRepo/Detectron2output/model_0899999.pth'  # model_final.pth'
-    model_path = '/home/010796032/MyRepo/Detectron2output/retinanetmodel/model_0559999.pth'
-    config_path="COCO-Detection/retinanet_R_50_FPN_3x.yaml"#+#modelname+".yaml"
+    model_path = '/home/010796032/MyRepo/Torchoutput/fasterrcnntrain/model_6.pth'
+    config_path=""#+#modelname+".yaml"
 
-
+class args:
+    nameprefix = "610tflitevalall"
+    input_data_dir = "/data/cmpe295-liu/Waymodicts/valdation/"
+    output_dir = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"/"
+    latency_result_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+".txt"
+    model_path = '/home/010796032/MyRepo/mymodels/model3exported523ktflitemodel.tflite'
+    config_path=""#+#modelname+".yaml"
+    
 
 if __name__ == '__main__':
     # parser = argparse.ArgumentParser()
