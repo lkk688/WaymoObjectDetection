@@ -45,12 +45,19 @@ model = None
 #     configfile='/home/010796032/3DObject/mymmdetection3d/configs/pointpillars/myhv_pointpillars_secfpn_sbn_2x16_2x_waymo-3d-4class.py'#basefolder+'configs/pointpillars/hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class.py'
 #     checkpoint = basefolder+'epoch_94.pth'
 
+# class kittiargs:
+#     modelname = 'waymo'#not used here
+#     use_cuda = True
+#     # basefolder = '/Developer/MyRepo/mymodels/mypointpillar_waymoD5trans_4class/'
+#     # configfile='/home/mymmdetection3d/configs/pointpillars/myhv_pointpillars_secfpn_sbn_2x16_2x_waymo-3d-4class.py'#basefolder+'configs/pointpillars/hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class.py'
+#     # checkpoint = basefolder+'epoch_94.pth'
+#     basefolder = '/code/mypointpillar_waymoD5trans_4class/'
+#     configfile='/home/mymmdetection3d/configs/pointpillars/myhv_pointpillars_secfpn_sbn_2x16_2x_waymo-3d-4class.py'#basefolder+'configs/pointpillars/hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class.py'
+#     checkpoint = basefolder+'epoch_94.pth'
+
 class kittiargs:
     modelname = 'waymo3class'#not used here
     use_cuda = True
-    # basefolder = '/Developer/MyRepo/mymodels/mypointpillar_waymoD5trans_4class/'
-    # configfile='/home/mymmdetection3d/configs/pointpillars/myhv_pointpillars_secfpn_sbn_2x16_2x_waymo-3d-4class.py'#basefolder+'configs/pointpillars/hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class.py'
-    # checkpoint = basefolder+'epoch_94.pth'
     basefolder = '/home/010796032/3DObject/mymmdetection3d/mypointpillar_waymo4ctrans/'
     configfile='/home/010796032/3DObject/mymmdetection3d/configs/pointpillars/myhv_pointpillars_secfpn_sbn_2x16_2x_waymo-3d-3class.py'#basefolder+'configs/pointpillars/hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class.py'
     checkpoint = basefolder+'epoch_65.pth'

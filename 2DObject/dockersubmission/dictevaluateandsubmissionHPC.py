@@ -47,6 +47,26 @@ def loadcreatedobjectfiles(objectfilepath):
     print('Got ', len(objects.objects), 'objects')
     return objects
 
+# def createsubmissionfromobject(objects, outputsubmissionfilepath, prefix):
+#     submission = submission_pb2.Submission()
+#     submission.task = submission_pb2.Submission.DETECTION_2D
+#     submission.account_name = 'lkk688@gmail.com'
+#     submission.authors.append('Kaikai Liu')
+#     submission.affiliation = 'San Jose State University'
+#     # 'fake' unique_method_name should not be too long
+#     submission.unique_method_name = prefix
+#     submission.docker_image_source = "us-west1-docker.pkg.dev/cmpelkk/mycontainers/mytftorchdetectron2@sha256:41bbb1469346d2fb5a31291b76e3d9857e5244ce83a8ae18f199ea96a15a2bcb"
+#     #Detectron2: "gcr.io/cmpelkk/mytftorch@sha256:629f60dd1b93c1750f909dd3064292f51d04db3b5cc041cf6fdfb26a49028c61"
+#     submission.description = 'Detectron2'
+#     submission.method_link = "https://drive.google.com/drive/folders/1qy8FmmrQfCKjg0G6nKVjME6tmZnlLBTz?usp=sharing"
+#     submission.sensor_type = submission_pb2.Submission.CAMERA_ALL
+#     submission.number_past_frames_exclude_current = 0
+#     submission.number_future_frames_exclude_current = 0
+#     submission.inference_results.CopyFrom(objects)
+#     f = open(outputsubmissionfilepath, 'wb')  # output submission file
+#     f.write(submission.SerializeToString())
+#     f.close()
+
 def createsubmissionfromobject(objects, outputsubmissionfilepath, prefix):
     submission = submission_pb2.Submission()
     submission.task = submission_pb2.Submission.DETECTION_2D
@@ -55,9 +75,9 @@ def createsubmissionfromobject(objects, outputsubmissionfilepath, prefix):
     submission.affiliation = 'San Jose State University'
     # 'fake' unique_method_name should not be too long
     submission.unique_method_name = prefix
-    submission.docker_image_source = "us-west1-docker.pkg.dev/cmpelkk/mycontainers/mytftorchvision@sha256:412c7459942b87ffb93fe369a3b7e2015cf9f1e68009cd3baf8acf96b668b4b2" #"gcr.io/cmpelkk/mytftorch@sha256:412c7459942b87ffb93fe369a3b7e2015cf9f1e68009cd3baf8acf96b668b4b2" #torchvision
+    submission.docker_image_source = "us-west1-docker.pkg.dev/cmpelkk/mycontainers/mytftorchvision@sha256:354ae11bb8947bfc2295aabb789b54b98ea92100425a061084723a9f00b6a35b"
     #Detectron2: "gcr.io/cmpelkk/mytftorch@sha256:629f60dd1b93c1750f909dd3064292f51d04db3b5cc041cf6fdfb26a49028c61"
-    submission.description = 'Torchvision FasterRCNN'
+    submission.description = 'Torchvision'
     submission.method_link = "https://drive.google.com/drive/folders/1qy8FmmrQfCKjg0G6nKVjME6tmZnlLBTz?usp=sharing"
     submission.sensor_type = submission_pb2.Submission.CAMERA_ALL
     submission.number_past_frames_exclude_current = 0
@@ -67,6 +87,25 @@ def createsubmissionfromobject(objects, outputsubmissionfilepath, prefix):
     f.write(submission.SerializeToString())
     f.close()
 
+# def createsubmissionfromobject(objects, outputsubmissionfilepath, prefix):
+#     submission = submission_pb2.Submission()
+#     submission.task = submission_pb2.Submission.DETECTION_2D
+#     submission.account_name = 'lkk688@gmail.com'
+#     submission.authors.append('Kaikai Liu')
+#     submission.affiliation = 'San Jose State University'
+#     # 'fake' unique_method_name should not be too long
+#     submission.unique_method_name = prefix
+#     submission.docker_image_source = "us-west1-docker.pkg.dev/cmpelkk/mycontainers/mytf2@sha256:a9a6ac9f9fc71ad6c872e21e527ff8421c62e3d4fe800c9538213b108b698764"
+#     #Detectron2: "gcr.io/cmpelkk/mytftorch@sha256:629f60dd1b93c1750f909dd3064292f51d04db3b5cc041cf6fdfb26a49028c61"
+#     submission.description = 'Tensorflow2 od'
+#     submission.method_link = "https://drive.google.com/drive/folders/1qy8FmmrQfCKjg0G6nKVjME6tmZnlLBTz?usp=sharing"
+#     submission.sensor_type = submission_pb2.Submission.CAMERA_ALL
+#     submission.number_past_frames_exclude_current = 0
+#     submission.number_future_frames_exclude_current = 0
+#     submission.inference_results.CopyFrom(objects)
+#     f = open(outputsubmissionfilepath, 'wb')  # output submission file
+#     f.write(submission.SerializeToString())
+#     f.close()
 
 if __name__ == "__main__":
     #test the above functions: convert a Frame proto into a dictionary
@@ -77,9 +116,9 @@ if __name__ == "__main__":
 
     #loadonedictfile(base_dir, filename)# load our own created dictionary file (compressed)
 
-    nameprefix = "0603dtrn2valall" #"610torchvisiontestall" #"0603dtrn2valall"#"609torchvisionvalall"#"609dtrn2valall"#"609mmdet35valall"#"531mmdet27valall"#"0603dtrn2valall"
-    objectfilepath = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"_dicvalallcameraobjects" #"_diccameraobjects" #0603dtrn2valall_dicvalallcameraobjects
+    nameprefix = "610torchvisiontestall" #"610dtrn2testall"#"611tftestall" #"609torchvisionvalall"# #"610torchvisiontestall"#"609torchvisionvalall" #"0603dtrn2valall" #"610torchvisiontestall" #"0603dtrn2valall"#"609torchvisionvalall"#"609dtrn2valall"#"609mmdet35valall"#"531mmdet27valall"#"0603dtrn2valall"
+    objectfilepath = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"_diccameraobjects" #"_diccameraobjects" #0603dtrn2valall_dicvalallcameraobjects
     resultobjects=loadcreatedobjectfiles(objectfilepath)
-    outputsubmissionfilepath="/home/010796032/MyRepo/myoutputs/"+nameprefix+"_diccamerasubmission2.bin"
+    outputsubmissionfilepath="/home/010796032/MyRepo/myoutputs/"+nameprefix+"_diccamerasubmission5.bin"
     createsubmissionfromobject(resultobjects, outputsubmissionfilepath, nameprefix)
 
