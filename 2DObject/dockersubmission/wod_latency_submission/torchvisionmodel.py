@@ -110,7 +110,7 @@ def get_prediction(modeluse, image, device, threshold):
     pred = modeluse([img.to(device)])
 
     pred_class = [INSTANCE_pb2[i] for i in list(pred[0]['labels'].cpu().numpy())] # Get the Prediction Score
-    pred_boxes = [[(i[0], i[1]), (i[2], i[3])] for i in list(pred[0]['boxes'].detach().cpu().numpy())] # Bounding boxes
+    pred_boxes = [[(i[0], i[1]), (i[2], i[3])] for i in list(pred[0]['boxes'].detach().cpu().numpy())] # Bounding boxes, xmin ymin xmax ymax 
     pred_score = list(pred[0]['scores'].detach().cpu().numpy())
     #print("Length: %d, %d, %d", len(pred_class), len(pred_boxes), len(pred_score))
     predlist=[pred_score.index(x) for x in pred_score if x > threshold] # Get list of index with score greater than threshold.
@@ -141,6 +141,7 @@ def get_prediction(modeluse, image, device, threshold):
     
     #pred_boxes = [x.data.cpu().numpy() for idx, x in enumerate(pred[0]['boxes']) if pred[0]["scores"][idx] > score_threshold]
     #pred_class = [x.data.cpu().numpy() for idx, x in enumerate(pred[0]['labels']) if pred[0]["scores"][idx] > score_threshold]
+    
     return pred_boxes, pred_class, pred_score
 
 def run_model(**kwargs):
@@ -160,9 +161,36 @@ def run_model(**kwargs):
     im_height=imageshape[0]#1280
 
     boxes, pred_cls, scores = get_prediction(model, FRONT_IMAGE, device, FILTERthreshold)
-    #print(pred_cls)
-    return {
+    numbox=len(pred_cls)
+    if numbox>0:
+        newboxes=[]
+        #[[xmin ymin] [xmax ymax]]  to (center_x, center_y, width, height) in image size
+        #pred_boxes = [[(i[1]*im_width, i[0]*im_height), (i[3]*im_width, i[2]*im_height)] for i in list(pred_boxes)] # Bounding boxes
+        for index_i in range(numbox):
+            currentbox=boxes[index_i]
+            xmin=currentbox[0][0]
+            ymin=currentbox[0][1]
+            xmax=currentbox[1][0]
+            ymax=currentbox[1][1]
+            center_x = (xmin+xmax)/2
+            center_y = (ymin+ymax)/2
+            length = xmax-xmin
+            width = ymax-ymin
+            newboxes.append([center_x, center_y, length, width])
+
+        return {
+            'boxes':  np.array(newboxes),
+            'scores': np.array(scores),
+            'classes': np.array(pred_cls).astype(np.uint8),
+        }
+    else:#empty
+        return {
             'boxes': np.array(boxes),
             'scores': np.array(scores),
             'classes': np.array(pred_cls).astype(np.uint8),
         }
+    # return {
+    #         'boxes': np.array(boxes),
+    #         'scores': np.array(scores),
+    #         'classes': np.array(pred_cls).astype(np.uint8),
+    #     }

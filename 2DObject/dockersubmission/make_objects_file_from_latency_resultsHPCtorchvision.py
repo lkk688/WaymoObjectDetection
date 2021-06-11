@@ -198,7 +198,7 @@ def make_allcameraobject_list_from_subdir(np_dir,
     # scores = np.load(os.path.join(np_dir, 'scores.npy'))
     allcameraresult = np.load(os.path.join(np_dir, 'allcameraresult.npy'),  allow_pickle=True)
     allcameraresult = allcameraresult.item()
-    print(allcameraresult)
+    #print(allcameraresult)
     #print(type(allcameraresult))
 
     obj_list = []
@@ -242,27 +242,27 @@ def make_allcameraobject_list_from_subdir(np_dir,
                 obj.object.box.width = boxes[i, 4]
                 obj.object.box.height = boxes[i, 5]
                 obj.object.box.heading = boxes[i, 6]
-            elif boxes.shape[1] == 4:
-            #else:
+            #elif boxes.shape[1] == 4:
+            else:
                 #(center_x, center_y, width, height) in image size
-                obj.object.box.center_x = boxes[i, 0]
-                obj.object.box.center_y = boxes[i, 1]
-                obj.object.box.length = boxes[i, 2]
-                obj.object.box.width = boxes[i, 3]
+                # obj.object.box.center_x = boxes[i, 0]
+                # obj.object.box.center_y = boxes[i, 1]
+                # obj.object.box.length = boxes[i, 2]
+                # obj.object.box.width = boxes[i, 3]
                 
 
                 #torchvision
                 # boxes: [[1766.0887   150.08638]
-                # [1834.643    193.6954 ]] xmin ymin xmax ymax 
-                # currentbox=boxes[i]
-                # xmin=currentbox[0][0]
-                # ymin=currentbox[0][1]
-                # xmax=currentbox[1][0]
-                # ymax=currentbox[1][1]
-                # obj.object.box.center_x = (xmin+xmax)/2
-                # obj.object.box.center_y = (ymin+ymax)/2
-                # obj.object.box.length = xmax-xmin
-                # obj.object.box.width = ymax-ymin
+                # [1834.643    193.6954 ]] [[xmin ymin] [xmax ymax]] 
+                currentbox=boxes[i]
+                xmin=currentbox[0][0]
+                ymin=currentbox[0][1]
+                xmax=currentbox[1][0]
+                ymax=currentbox[1][1]
+                obj.object.box.center_x = (xmin+xmax)/2
+                obj.object.box.center_y = (ymin+ymax)/2
+                obj.object.box.length = xmax-xmin
+                obj.object.box.width = ymax-ymin
                 print("obj:",obj.object.box)
                 # For 2D detection objects, the camera name of the object proto comes from
                 # the camera whose image was used as input. Thus, the input_fields
@@ -303,7 +303,7 @@ def make_allcameraobject_list_from_subdir(np_dir,
 #     output_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"_dicvalallcameraobjects"#"_dicvalfrontobjects"
 
 class args:
-    nameprefix = "610dtrn2testall"#"609dtrn2testall" #"609torchvisionvalall"#"609mmdet35testall"#"609dtrn2valall"# "609mmdet35valall"#"0603dtrn2valall"
+    nameprefix = "610torchvisiontestall" #"610dtrn2testall"#"609dtrn2testall" #"609torchvisionvalall"#"609mmdet35testall"#"609dtrn2valall"# "609mmdet35valall"#"0603dtrn2valall"
     results_dir = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"/"
     output_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"_diccameraobjects"#"_dicvalfrontobjects"
 
