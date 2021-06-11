@@ -96,7 +96,7 @@ def process_allimages_example(input_dir, output_dir):
         assert len(output) == 3
         assert set(output.keys()) == set(('boxes', 'scores', 'classes'))
         num_objs = output['boxes'].shape[0]
-        #print(f'num_objs:{num_objs}')
+        print(f'num_objs:{num_objs}')
         assert output['scores'].shape[0] == num_objs
         assert output['classes'].shape[0] == num_objs
 
@@ -105,7 +105,7 @@ def process_allimages_example(input_dir, output_dir):
         #     npfilename=imagename+'_'+k #k add image name before the key
         #     np.save(os.path.join(output_dir, npfilename), v)
         result_dict[imagename]=output
-        print(f'Num objs: {num_objs}, output: {output}')
+        #print(f'Num objs: {num_objs}, output: {output}')
         
         del data
     # # Save the list of input fields in a text file.
@@ -144,7 +144,7 @@ class args:
     config_path=''
 
 # class args:
-#     nameprefix = "610torchvisiontestall"
+#     nameprefix = "610btorchvisiontestall"
 #     input_data_dir = "/data/cmpe295-liu/Waymodicts/testing/"
 #     output_dir = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"/"
 #     latency_result_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+".txt"
@@ -185,9 +185,11 @@ if __name__ == '__main__':
         context_latency = []
         print(f"index: {contextfileid}, context_dir:{context_dir}")
         contextfileid = contextfileid +1
-        if path.exists(os.path.join(args.output_dir, context_name, 'latency.npy')):
-            print(f'Latency file already exist')
-            continue
+        # if contextfileid<56:
+        #     continue
+        # if path.exists(os.path.join(args.output_dir, context_name, 'latency.npy')):
+        #     print(f'Latency file already exist')
+        #     continue
         if not os.path.isdir(context_dir):
             continue
         for timestamp_micros in os.listdir(context_dir):

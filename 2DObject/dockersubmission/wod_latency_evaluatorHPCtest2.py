@@ -23,6 +23,8 @@ import numpy as np
 
 import wod_latency_submission
 
+from os import path
+
 
 def process_example(input_dir, output_dir):
     """Process a single example, save its outputs, and return the latency.
@@ -94,7 +96,7 @@ def process_allimages_example(input_dir, output_dir):
         assert len(output) == 3
         assert set(output.keys()) == set(('boxes', 'scores', 'classes'))
         num_objs = output['boxes'].shape[0]
-        #print(f'num_objs:{num_objs}')
+        print(f'num_objs:{num_objs}')
         assert output['scores'].shape[0] == num_objs
         assert output['classes'].shape[0] == num_objs
 
@@ -103,6 +105,7 @@ def process_allimages_example(input_dir, output_dir):
         #     npfilename=imagename+'_'+k #k add image name before the key
         #     np.save(os.path.join(output_dir, npfilename), v)
         result_dict[imagename]=output
+        #print(f'Num objs: {num_objs}, output: {output}')
         
         del data
     # # Save the list of input fields in a text file.
@@ -117,8 +120,8 @@ def process_allimages_example(input_dir, output_dir):
     return np.mean(latency_np)
 
 # class args:
-#     nameprefix = "609mmdet35valall"
-#     input_data_dir = "/data/cmpe295-liu/Waymodicts/valdation/"
+#     nameprefix = "609mmdet35testall"
+#     input_data_dir = "/data/cmpe295-liu/Waymodicts/testing/"
 #     output_dir = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"/"
 #     latency_result_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+".txt"
 #     #detectron2 model
@@ -129,21 +132,29 @@ def process_allimages_example(input_dir, output_dir):
 #     config_path='/home/010796032/3DObject/mmdetection/configs/faster_rcnn/faster_rcnn_r101_fpn_2x_coco.py'
 
 # class args:
-#     nameprefix = "609dtrn2valall"
-#     input_data_dir = "/data/cmpe295-liu/Waymodicts/valdation/"
+#     nameprefix = "610dtrn2testall"#"609dtrn2testall"
+#     input_data_dir = "/data/cmpe295-liu/Waymodicts/testing/"#input_data_dir = "/data/cmpe295-liu/Waymodicts/valdation/"
 #     output_dir = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"/"
 #     latency_result_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+".txt"
 #     #detectron2 model
 #     # model_path = '/home/010796032/MyRepo/Detectron2output/model_0899999.pth'
 #     # config_path = ''
 #     #mmdetection model
-#     #model_path = '/home/010796032/MyRepo/Detectron2output/model_0899999.pth'  # model_final.pth'
-#     model_path = '/home/010796032/MyRepo/Detectron2output/retinanetmodel/model_0559999.pth'
-#     config_path="COCO-Detection/retinanet_R_50_FPN_3x.yaml"#+#modelname+".yaml"
+#     model_path = '/home/010796032/MyRepo/Detectron2output/model_0899999.pth'  # model_final.pth'
+#     config_path=''
+
+class args:
+    nameprefix = "611tftestall"
+    input_data_dir = "/data/cmpe295-liu/Waymodicts/testing/"
+    output_dir = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"/"
+    latency_result_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+".txt"
+    model_path = '/home/010796032/MyRepo/mymodels/model3exported614k/saved_model'
+    config_path=""#+#modelname+".yaml"
+    
 
 # class args:
-#     nameprefix = "609torchvisionvalall"
-#     input_data_dir = "/data/cmpe295-liu/Waymodicts/valdation/"
+#     nameprefix = "610btorchvisiontestall"
+#     input_data_dir = "/data/cmpe295-liu/Waymodicts/testing/"
 #     output_dir = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"/"
 #     latency_result_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+".txt"
 #     #detectron2 model
@@ -154,14 +165,13 @@ def process_allimages_example(input_dir, output_dir):
 #     model_path = '/home/010796032/MyRepo/Torchoutput/fasterrcnntrain/model_6.pth'
 #     config_path=""#+#modelname+".yaml"
 
-class args:
-    nameprefix = "611tfvalall"
-    input_data_dir = "/data/cmpe295-liu/Waymodicts/valdation/"
-    output_dir = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"/"
-    latency_result_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+".txt"
-    model_path = '/home/010796032/MyRepo/mymodels/model3exported614k/saved_model'
-    config_path=""#+#modelname+".yaml"
-    
+# class args:
+#     nameprefix = "610tf2testall"
+#     input_data_dir = "/data/cmpe295-liu/Waymodicts/testing/"
+#     output_dir = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"/"
+#     latency_result_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+".txt"
+#     model_path = '/home/010796032/MyRepo/mymodels/model3exported523k/saved_model'
+#     config_path=""#+#modelname+".yaml"
 
 if __name__ == '__main__':
     # parser = argparse.ArgumentParser()
@@ -184,6 +194,11 @@ if __name__ == '__main__':
         context_latency = []
         print(f"index: {contextfileid}, context_dir:{context_dir}")
         contextfileid = contextfileid +1
+        # if contextfileid<56:
+        #     continue
+        # if path.exists(os.path.join(args.output_dir, context_name, 'latency.npy')):
+        #     print(f'Latency file already exist')
+        #     continue
         if not os.path.isdir(context_dir):
             continue
         for timestamp_micros in os.listdir(context_dir):

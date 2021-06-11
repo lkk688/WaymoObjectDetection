@@ -23,7 +23,7 @@
 # run_model = detectron2model.run_model
 # DATA_FIELDS = detectron2model.DATA_FIELDS
 
-Modelname="detectron2"
+Modelname="tf2od"
 if Modelname=="detectron2":
     from . import detectron2model
     initialize_model = detectron2model.initialize_model

@@ -15,7 +15,7 @@ model = None
 input_details = None
 DATA_FIELDS = ['FRONT_IMAGE']
 FILTERthreshold=0.2
-model_dir = '/home/010796032/MyRepo/mymodels/model3exported523ktflitemodel.tflite'
+model_dir = '/home/010796032/MyRepo/mymodels/model3exported614ktflitemodel.tflite'
 config = ''#Use optional load from checkpoint
 from os import path
 def setupmodeldir(model_path, config_path=''):

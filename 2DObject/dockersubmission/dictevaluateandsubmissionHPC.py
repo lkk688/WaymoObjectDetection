@@ -50,13 +50,14 @@ def loadcreatedobjectfiles(objectfilepath):
 def createsubmissionfromobject(objects, outputsubmissionfilepath, prefix):
     submission = submission_pb2.Submission()
     submission.task = submission_pb2.Submission.DETECTION_2D
-    submission.account_name = 'kaikai.liu@sjsu.edu'
+    submission.account_name = 'lkk688@gmail.com'
     submission.authors.append('Kaikai Liu')
     submission.affiliation = 'San Jose State University'
     # 'fake' unique_method_name should not be too long
     submission.unique_method_name = prefix
-    submission.docker_image_source = "gcr.io/cmpelkk/mytftorch@sha256:629f60dd1b93c1750f909dd3064292f51d04db3b5cc041cf6fdfb26a49028c61"
-    submission.description = 'Detectron2'
+    submission.docker_image_source = "us-west1-docker.pkg.dev/cmpelkk/mycontainers/mytftorchvision@sha256:412c7459942b87ffb93fe369a3b7e2015cf9f1e68009cd3baf8acf96b668b4b2" #"gcr.io/cmpelkk/mytftorch@sha256:412c7459942b87ffb93fe369a3b7e2015cf9f1e68009cd3baf8acf96b668b4b2" #torchvision
+    #Detectron2: "gcr.io/cmpelkk/mytftorch@sha256:629f60dd1b93c1750f909dd3064292f51d04db3b5cc041cf6fdfb26a49028c61"
+    submission.description = 'Torchvision FasterRCNN'
     submission.method_link = "https://drive.google.com/drive/folders/1qy8FmmrQfCKjg0G6nKVjME6tmZnlLBTz?usp=sharing"
     submission.sensor_type = submission_pb2.Submission.CAMERA_ALL
     submission.number_past_frames_exclude_current = 0
@@ -76,9 +77,9 @@ if __name__ == "__main__":
 
     #loadonedictfile(base_dir, filename)# load our own created dictionary file (compressed)
 
-    nameprefix = "610torchvisiontestall" #"0603dtrn2valall"#"609torchvisionvalall"#"609dtrn2valall"#"609mmdet35valall"#"531mmdet27valall"#"0603dtrn2valall"
-    objectfilepath = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"_diccameraobjects"
+    nameprefix = "0603dtrn2valall" #"610torchvisiontestall" #"0603dtrn2valall"#"609torchvisionvalall"#"609dtrn2valall"#"609mmdet35valall"#"531mmdet27valall"#"0603dtrn2valall"
+    objectfilepath = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"_dicvalallcameraobjects" #"_diccameraobjects" #0603dtrn2valall_dicvalallcameraobjects
     resultobjects=loadcreatedobjectfiles(objectfilepath)
-    outputsubmissionfilepath="/home/010796032/MyRepo/myoutputs/"+nameprefix+"_diccamerasubmission0610.bin"
+    outputsubmissionfilepath="/home/010796032/MyRepo/myoutputs/"+nameprefix+"_diccamerasubmission2.bin"
     createsubmissionfromobject(resultobjects, outputsubmissionfilepath, nameprefix)
 
