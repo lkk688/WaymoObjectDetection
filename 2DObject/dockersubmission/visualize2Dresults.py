@@ -24,7 +24,7 @@ if __name__ == "__main__":
     context_dir = os.path.join(input_data_dir, context_name)
     timestamp_dir = os.path.join(context_dir, timestamp_micros)
 
-    nameprefix = "609dtrn2testall"#"610btorchvisiontestall"
+    nameprefix = "611tftestall"#"610dtrn2testall"#"609dtrn2testall"#"610btorchvisiontestall"
     output_dir = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"/"
     dataresult_path = os.path.join(output_dir, context_name, timestamp_micros, 'allcameraresult.npy')
     allcameraresult = np.load(dataresult_path,  allow_pickle=True)
@@ -49,6 +49,6 @@ if __name__ == "__main__":
         display_str = f'context_name: {context_name}, timestamp_micros: {timestamp_micros}'
         visualization_util.draw_text_on_image(inputimage, 0, 0, display_str, color='black')
 
-        name = './frame' + str(imagename) + '.jpg'
+        name = './frame' + nameprefix + str(imagename) + '.jpg'
         print ('Creating\...' + name)
         cv2.imwrite(name, cv2.cvtColor(inputimage, cv2.COLOR_RGB2BGR)) #write to image folder

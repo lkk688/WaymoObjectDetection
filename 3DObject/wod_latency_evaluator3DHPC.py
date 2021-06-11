@@ -129,8 +129,8 @@ def process_allimages_example(input_dir, output_dir):
 #     config_path=''
 
 class args:
-    nameprefix = "609mm3dvalall"
-    input_data_dir = "/data/cmpe295-liu/Waymodicts/valdation/"
+    nameprefix = "611mm3d"
+    input_data_dir = "/data/cmpe295-liu/Waymodicts/testing/" #"/data/cmpe295-liu/Waymodicts/valdation/"
     output_dir = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"/"
     latency_result_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+".txt"
     

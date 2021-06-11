@@ -27,15 +27,34 @@ def loadcreatedobjectfiles(objectfilepath):
     print('Got ', len(objects.objects), 'objects')
     return objects
 
+# def createsubmissionfromobject(objects, outputsubmissionfilepath, prefix):
+#     submission = submission_pb2.Submission()
+#     submission.task = submission_pb2.Submission.DETECTION_3D #DETECTION_2D
+#     submission.account_name = 'kaikai.liu@sjsu.edu'
+#     submission.authors.append('Kaikai Liu')
+#     submission.affiliation = 'San Jose State University'
+#     # 'fake' unique_method_name should not be too long
+#     submission.unique_method_name = prefix
+#     submission.description = 'mm3d'
+#     submission.method_link = "https://drive.google.com/drive/folders/1qy8FmmrQfCKjg0G6nKVjME6tmZnlLBTz?usp=sharing"
+#     submission.sensor_type = submission_pb2.Submission.LIDAR_ALL #CAMERA_ALL
+#     submission.number_past_frames_exclude_current = 0
+#     submission.number_future_frames_exclude_current = 0
+#     submission.inference_results.CopyFrom(objects)
+#     f = open(outputsubmissionfilepath, 'wb')  # output submission file
+#     f.write(submission.SerializeToString())
+#     f.close()
+
 def createsubmissionfromobject(objects, outputsubmissionfilepath, prefix):
     submission = submission_pb2.Submission()
     submission.task = submission_pb2.Submission.DETECTION_3D #DETECTION_2D
-    submission.account_name = 'kaikai.liu@sjsu.edu'
+    submission.account_name = 'lkk688@gmail.com'
     submission.authors.append('Kaikai Liu')
     submission.affiliation = 'San Jose State University'
     # 'fake' unique_method_name should not be too long
     submission.unique_method_name = prefix
     submission.description = 'mm3d'
+    submission.docker_image_source = "us-west1-docker.pkg.dev/cmpelkk/mycontainers/mymm3d@sha256:d2853bdc620a4e3aa434b1d22bbec8dfcedb09e6378978872d64dd9d1ab20d1b"
     submission.method_link = "https://drive.google.com/drive/folders/1qy8FmmrQfCKjg0G6nKVjME6tmZnlLBTz?usp=sharing"
     submission.sensor_type = submission_pb2.Submission.LIDAR_ALL #CAMERA_ALL
     submission.number_past_frames_exclude_current = 0
@@ -44,7 +63,6 @@ def createsubmissionfromobject(objects, outputsubmissionfilepath, prefix):
     f = open(outputsubmissionfilepath, 'wb')  # output submission file
     f.write(submission.SerializeToString())
     f.close()
-
 
 if __name__ == "__main__":
     #test the above functions: convert a Frame proto into a dictionary
@@ -55,9 +73,9 @@ if __name__ == "__main__":
 
     #loadonedictfile(base_dir, filename)# load our own created dictionary file (compressed)
 
-    nameprefix = "609mm3d3classvalall"#"609mm3dvalall"
+    nameprefix = "609mm3d3classvalall"#"609mm3dvalall" #"609mm3d3classvalall"#
     objectfilepath = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"_dicvalall3dobjects"
     resultobjects=loadcreatedobjectfiles(objectfilepath)
-    outputsubmissionfilepath="/home/010796032/MyRepo/myoutputs/"+nameprefix+"_dicvalall3dsubmission.bin"
+    outputsubmissionfilepath="/home/010796032/MyRepo/myoutputs/"+nameprefix+"_dicvalall3dsubmission5.bin"
     createsubmissionfromobject(resultobjects, outputsubmissionfilepath, nameprefix)
 

@@ -72,13 +72,15 @@ def make_object_list_from_subdir(np_dir,
         obj.frame_timestamp_micros = frame_timestamp_micros
         obj.score = scores[i]
         obj.object.type = INSTANCE_pb2[classes[i]]
-        print(f'obj type: {obj.object.type}, score: {obj.score}')
+        #print(f'obj type: {obj.object.type}, score: {obj.score}')
+
+        obj.object.id = 'unique object tracking ID'
 
         # Handle the box creation differently for 3D boxes (where the inner
         # dimension is 7) and 2D boxes (where the inner dimension is 4).
         if boxes.shape[1] == 7:
             #Each row is (x, y, z, x_size, y_size, z_size, yaw) in Box3DMode.LIDAR
-            print(f'num_objs: {num_objs}, dimension7, type: {classes[i]}, obj type: {obj.object.type}')
+            #print(f'num_objs: {num_objs}, dimension7, type: {classes[i]}, obj type: {obj.object.type}')
             obj.object.box.center_x = boxes[i, 0]
             obj.object.box.center_y = boxes[i, 1]
             obj.object.box.center_z = boxes[i, 2]
@@ -86,7 +88,7 @@ def make_object_list_from_subdir(np_dir,
             obj.object.box.width = boxes[i, 4]
             obj.object.box.height = boxes[i, 5]
             obj.object.box.heading = boxes[i, 6]
-            print(obj.object.box)
+            #print(obj.object.box)
         elif boxes.shape[1] == 4:
             obj.object.box.center_x = boxes[i, 0]
             obj.object.box.center_y = boxes[i, 1]
@@ -132,7 +134,7 @@ def make_object_list_from_subdir(np_dir,
 class args:
     nameprefix = "609mm3d3classvalall"# "609mm3dvalall"
     results_dir = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"/"
-    output_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"_dicvalall3dobjects"#"_dicvalfrontobjects"
+    output_file = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"_dicvalall3dobjects2"#"_dicvalfrontobjects"
 
 if __name__ == '__main__':
     #   parser = argparse.ArgumentParser()
@@ -154,8 +156,10 @@ if __name__ == '__main__':
                 continue
 
             print('Processing', context_name, timestamp_micros)
-            objects.objects.extend(make_object_list_from_subdir(
-                timestamp_dir, context_name, int(timestamp_micros)))
+            obj_list=make_object_list_from_subdir(
+                timestamp_dir, context_name, int(timestamp_micros))
+            objects.objects.extend(obj_list)
+            print(f'obj_list len: {len(obj_list)}, total objects: {len(objects.objects)}')
             # objects.objects.extend(make_allcameraobject_list_from_subdir(
             #     timestamp_dir, context_name, int(timestamp_micros)))
 
