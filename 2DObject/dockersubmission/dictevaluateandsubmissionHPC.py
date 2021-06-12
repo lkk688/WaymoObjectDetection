@@ -116,7 +116,7 @@ if __name__ == "__main__":
 
     #loadonedictfile(base_dir, filename)# load our own created dictionary file (compressed)
 
-    nameprefix = "610torchvisiontestall" #"610dtrn2testall"#"611tftestall" #"609torchvisionvalall"# #"610torchvisiontestall"#"609torchvisionvalall" #"0603dtrn2valall" #"610torchvisiontestall" #"0603dtrn2valall"#"609torchvisionvalall"#"609dtrn2valall"#"609mmdet35valall"#"531mmdet27valall"#"0603dtrn2valall"
+    nameprefix = "611tfvalall"#"610torchvisiontestall" #"610dtrn2testall"#"611tftestall" #"609torchvisionvalall"# #"610torchvisiontestall"#"609torchvisionvalall" #"0603dtrn2valall" #"610torchvisiontestall" #"0603dtrn2valall"#"609torchvisionvalall"#"609dtrn2valall"#"609mmdet35valall"#"531mmdet27valall"#"0603dtrn2valall"
     objectfilepath = "/home/010796032/MyRepo/myoutputs/"+nameprefix+"_diccameraobjects" #"_diccameraobjects" #0603dtrn2valall_dicvalallcameraobjects
     resultobjects=loadcreatedobjectfiles(objectfilepath)
     outputsubmissionfilepath="/home/010796032/MyRepo/myoutputs/"+nameprefix+"_diccamerasubmission5.bin"
