@@ -5,10 +5,10 @@ import os
 import numpy as np
 #pip3 install --extra-index-url https://google-coral.github.io/py-repo/ tflite_runtime
 #Successfully installed tflite-runtime-2.5.0
-#import tflite_runtime.interpreter as tflite
+import tflite_runtime.interpreter as tflite
 
-import tensorflow as tf
-
+#import tensorflow as tf
+from PIL import Image
 
 # Global variables that hold the models
 model = None
@@ -39,8 +39,8 @@ def initialize_model():
     #load saved model
     global model
     # Load TFLite model and allocate tensors.
-    model = tf.lite.Interpreter(model_path=model_dir)
-    #model = tflite.Interpreter(model_path=model_dir)
+    #model = tf.lite.Interpreter(model_path=model_dir)
+    model = tflite.Interpreter(model_path=model_dir)
     model.allocate_tensors()
     # Get input tensor details
     global input_details
@@ -125,7 +125,16 @@ def run_model(**kwargs):
     imageshape=FRONT_IMAGE.shape
     im_width=imageshape[1]#1920
     im_height=imageshape[0]#1280
-    input_tensor = np.expand_dims(FRONT_IMAGE, 0)
+
+    # NxHxWxC, H:1, W:2
+    height = input_details[0]['shape'][1]#1024
+    width = input_details[0]['shape'][2]#1024
+
+    PIL_image = Image.fromarray(np.uint8(FRONT_IMAGE)).convert('RGB')
+    img = PIL_image.resize((width, height))
+
+
+    input_tensor = np.expand_dims(img, 0)
     #input_data = np.expand_dims(img, axis=0)
     input_data = (np.float32(input_tensor) - 127.5) / 127.5 # floating model
     model.set_tensor(input_details[0]['index'], input_data)
