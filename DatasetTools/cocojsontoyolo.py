@@ -144,7 +144,7 @@ def image_folder2file(basefolder, folder='images/'):  # from utils import *; ima
         for l in s:
             #change absolute path to relative path
             relative_path = os.path.relpath(l, basefolder)
-            file.write(relative_path + '\n')  # write image list
+            file.write('./'+relative_path + '\n')  # write image list
 
 def split_rows_simple(file='../data/sm4/out.txt'): 
     # splits one textfile into 3 smaller ones based upon train, test, val ratios
@@ -182,7 +182,7 @@ if __name__ == '__main__':
     waymojsonfile = '/DATA5T/Dataset/WaymoCOCO/annotations_train200new.json'
     save_dir='/DATA5T2/Datasets/waymotrain200cocoyolo'
     if source == 'WAYMOCOCO':
-        convert_waymococo_json(source_dir, waymojsonfile, save_dir, deleteold=True, copyimage=True)
+        #convert_waymococo_json(source_dir, waymojsonfile, save_dir, deleteold=True, copyimage=True)
 
         # Write *.names file
         #WAYMO_CLASSES =['unknown', 'vehicle', 'pedestrian', 'sign', 'cyclist']
