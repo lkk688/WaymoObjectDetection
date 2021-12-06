@@ -11,6 +11,40 @@ import mmcv
 
 from myWaymoinfo_utils import get_waymo_image_info, _calculate_num_points_in_gt
 
+from os.path import exists
+import os
+#new created, add check file availability
+def create_trainvaltestsplitfile2(dataset_dir, output_dir):
+    trainingdir = os.path.join(dataset_dir, 'image_0')
+    ImageSetdir = os.path.join(output_dir, 'ImageSets')
+    if not os.path.exists(ImageSetdir):
+        os.makedirs(ImageSetdir)
+
+    images = os.listdir(trainingdir)
+    # totalimages=len([img for img in images])
+    # print("Total images:", totalimages)
+    dataset = []
+    for img in images:
+        #new add
+        head, tail = os.path.split(img)
+        fileidname=tail[:-4]
+        print('fileidname',fileidname)
+        lidarfile=os.path.join(dataset_dir, 'velodyne', fileidname+'.bin')
+        lidarfile_exists = exists(lidarfile)
+        if lidarfile_exists:
+            dataset.append(img[:-4])#remove .png
+        else:
+            print('lidar file not exist', lidarfile)
+    print("Total images:", len(dataset))
+    df = pd.DataFrame(dataset, columns=['index'], dtype=np.int32)
+    X_train, X_val = train_test_split(df, train_size=0.8, test_size=0.2, random_state=42)
+    print("Train size:", X_train.shape)
+    print("Val size:", X_val.shape)
+    write_to_file(os.path.join(ImageSetdir, 'trainval.txt'), df.sort_values('index')['index'])
+    write_to_file(os.path.join(ImageSetdir, 'train.txt'), X_train.sort_values('index')['index'])
+    write_to_file(os.path.join(ImageSetdir, 'val.txt'), X_val.sort_values('index')['index'])
+
+
 def create_trainvaltestsplitfile(dataset_dir, output_dir):
     trainingdir = os.path.join(dataset_dir, 'image_0')
     ImageSetdir = os.path.join(output_dir, 'ImageSets')
