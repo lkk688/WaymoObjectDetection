@@ -227,10 +227,7 @@ Among all keys, FRONT_IMAGE: <class 'numpy.ndarray'>, (1280, 1920, 3); TOP_RANGE
 The lidar spherical coordinate system is based on the Cartesian coordinate system in lidar sensor frame. A point (x, y, z) in lidar Cartesian coordinates can be uniquely translated to a (range, azimuth, inclination) tuple in lidar spherical coordinates.
 
 
-## Waymo Dataset Preparation (Data Conversion)
-* WaymoStartHPC.ipynb is modified based on Waymo official sample and added bounding box visualization of the original Waymo Dataset (TFRecord format)
-* create_waymo_train_tfrecord.py and create_waymo_val_tfrecord.py are used to convert the original Waymo Dataset (TFRecord format) to TFRecord files used for Tensorflow object detection
-* WaymoNewtoCOCO.ipynb is the code to convert the original Waymo Dataset (TFRecord format) to COCO format.
+## Waymo Dataset Convert to Kitti Format (Data Conversion)
 
 Use the following code to convert Waymo dataset to Kitti format (it calls converter.concurrenttaskthread()). HPC can open up to 56 (total CPU cores) threads for parallal conversion, 48 threads are tested:
 ```bash
@@ -277,17 +274,34 @@ ImageSets  training  waymo_infos_train.pkl  waymo_infos_trainval.pkl  waymo_info
 
 After the infos.pkl files have been generated, you can go to [mymmdetection3d](https://github.com/lkk688/mymmdetection3d) to perform groundtruth db generation.
 
+## Jupyter Notebook
+* WaymoStartHPC.ipynb is modified based on Waymo official sample and added bounding box visualization of the original Waymo Dataset (TFRecord format)
+
+## Waymo Dataset Conversion to COCO format
+* WaymoNewtoCOCO.ipynb is the code to convert the original Waymo Dataset (TFRecord format) to COCO format. But, this jupyter file is not used in the latest version
+* To enable parallel conversion of the Waymo TF record file to COCO format, we divide the conversion process into two parts: 1) [Waymo2COCO.py](/DatasetTools/Waymo2COCO.py) parses WaymoTF record file and save the data as python pickle files; 2) [combineWaymoCOCOpicklestoJsonxxx.py](DatasetTools/combineWaymoCOCOpicklestoJsonFilterHPC.py) merges these created python pickle files to COCO format (.json annotation).
+
+
 ## Object Detection training and evaluation based on Tensorflow2 Object Detection
-* Tensorflow2-objectdetection-waymodata.ipynb is the Google Colab sample code to perform object detection and training based on Tensorflow2 object detection (latest version) and utilize the converted Waymo TFRecord file in Google Cloud storage.
+* Tensorflow2-objectdetection-waymodata.ipynb is the Google Colab sample code to perform object detection and training based on Tensorflow2 object detection (latest version) and utilize the converted Waymo TFRecord file in Google Cloud storage. 
+* create_waymo_train_tfrecord.py and create_waymo_val_tfrecord.py under the [DatasetTools](/DatasetTools) folder are used to convert the original Waymo Dataset (TFRecord format) to TFRecord files used for Tensorflow object detection
+* Folder [tfobjectdetection](/2DObject/tfobjectdetection/) under 2DObject folder contains Tensorflow2 object detection training, testing, evaluation, and export to TF-Lite code
 
 ## Object Detection training and evaluation based on Pytorch Torchvision (FasterRCNN)
 * The sample code to play with Torchvision in Colab: [colab link](https://colab.research.google.com/drive/1DKZUL5ylKjiKtfOCGpirjRA3j8rIOs9M?usp=sharing) (you need to use SJSU google account to view)
-* WaymoTrain.ipynb is the sample code to perform object detection training based on Torchvision FasterRCNN based on the original Waymo Dataset (TFRecord format), no dataset conversion is used in this sample code
+* WaymoTrain.ipynb is the sample code to perform object detection training based on Torchvision FasterRCNN based on the original Waymo Dataset (TFRecord format), no dataset conversion is used in this sample code, but the parsing of the Waymo TFRecord file takes a long time.
 * WaymoEvaluation.ipynb is the sample code to perform evaluation (both COCO evaluation and image visualization) of the trained object detection model based on Torchvision FasterRCNN
-* coco_eval.py, coco_utils.py, engine.py, transforms.py, utils.py are copied from Torchvision directory and used in the WaymoTrain.ipynb and WaymoEvaluation.ipynb
+* coco_eval.py, coco_utils.py, engine.py, transforms.py, utils.py under the folder of [MyDetector](/MyDetector/) are copied from Torchvision directory and used in the WaymoTrain.ipynb and WaymoEvaluation.ipynb
+* [torchvision_waymococo_train.py](/MyDetector/torchvision_waymococo_train.py) is the new version that performs Pytorch FasterRCNN training based on converted Waymo COCO format data. This version can be applied for any dataset with COCO format annotation, it also avoids the paring of the Waymo TFRecord file every time.
 
 ## Object Detection training and evaluation based on Detectron2
 * WaymoDetectron2Train.py is the code to run training based on Detectron2. This code used the COCO formated dataset (WaymoDataset converted to COCO via WaymoNewtoCOCO.ipynb)
 * WaymoDetectron2Evaluation.ipynb is the jupyter notebook code to run evaluation based on Detectron2
+* [WaymoCOCODetectron2train.py](/2DObject/WaymoCOCODetectron2train.py) is the new version of Detectron2 training, [WaymoCOCODetectron2eval.py](/2DObject/WaymoCOCODetectron2eval.py) is the evaluation code
 
- 
+ ## Object Detection training and evaluation based on MMdetection2D
+ * [mymmdetection2dtrainxxx](/2DObject/mymmdetection2dtrain.py) is the code to train mmdetection2d model for the Waymo dataset
+
+## 2D Detection Submission
+* Folder [dockersubmission](/2DObject/dockersubmission/) contains waymo 2D detection submission related code.
+* Folder [wod_latency_submission](/2DObject/dockersubmission/wod_latency_submission/) contains the library of our 2D object detector for inference evaluation. We included Detectron2, Tensorflow2, Torchvision, and mmdetection2d models. 
