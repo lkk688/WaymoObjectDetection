@@ -283,7 +283,7 @@ After the infos.pkl files have been generated, you can go to [mymmdetection3d](h
 
 
 ## Object Detection training and evaluation based on Tensorflow2 Object Detection
-* Tensorflow2-objectdetection-waymodata.ipynb is the Google Colab sample code to perform object detection and training based on Tensorflow2 object detection (latest version) and utilize the converted Waymo TFRecord file in Google Cloud storage. 
+* Tensorflow2-objectdetection-waymodata.ipynb [colab version](https://colab.research.google.com/drive/17ri16QfSCR1ia0O0ZKi4tSwTdMyWEI3-?usp=sharing) is the Google Colab sample code to perform object detection and training based on Tensorflow2 object detection (latest version) and utilize the converted Waymo TFRecord file in Google Cloud storage. 
 * create_waymo_train_tfrecord.py and create_waymo_val_tfrecord.py under the [DatasetTools](/DatasetTools) folder are used to convert the original Waymo Dataset (TFRecord format) to TFRecord files used for Tensorflow object detection
 * Folder [tfobjectdetection](/2DObject/tfobjectdetection/) under 2DObject folder contains Tensorflow2 object detection training, testing, evaluation, and export to TF-Lite code
 
